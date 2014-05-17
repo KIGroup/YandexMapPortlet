@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Document name="KZDashboards-KZMap.dashboard.DFI">
+<dashboard xmlns="http://www.intersystems.com/deepsee/library" name="KZMap" folderName="KZDashboards" title="" description="" keywords="" owner="" shared="true" public="true" locked="false" resource="" timeCreated="2013-07-04T05:29:56.446Z" createdBy="ilson" category="" bookCover="" scheme="" worklistCount="0" snapTo="true" snapGrid="true" gridRows="10" gridCols="10" canResize="true" canModify="true" showTitleBar="true" companyName="" companyLogo="" companyStyle="">
+  <widget name="MapW" type="portlet" subtype="KZ.MapPortlet" subtypeClass="" title="Казахстан" dataSource="KZMapKPI.kpi" dataLink="" drillDownDataSource="" width="200" height="200" sidebarContent="" showSidebar="false" sidebarWidth="" maximized="false" homeRowL="0" homeColL="0" colSpanL="10" rowSpanL="10" showToolbar="true" theme="" dataColorList="">
+    <control name="" action="applyFilter" target="*" targetProperty="ParentGuid" location="widget" type="hidden" controlClass="" label="ParentGuid" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen=""></control>
+    <control name="" action="applyFilter" target="*" targetProperty="ParameterName" location="widget" type="dropdown" controlClass="" label="Параметр" title="" value="Население" text="" readOnly="false" valueList="" displayList="" activeWhen=""></control>
+    <control name="" action="applyFilter" target="" targetProperty="PolygonsMarkers" location="widget" type="dropdown" controlClass="" label="Вариант отображения" title="" value="Polygons" text="" readOnly="false" valueList="" displayList="" activeWhen=""></control>
+    <property name="colorProperty"></property>
+    <property name="coordsJsFile">polygonsKZ.js</property>
+    <property name="coordsProperty">Guid</property>
+    <property name="fillOpacity">0.6</property>
+    <property name="getAdditionInfoForObjectById"></property>
+    <property name="getBordersMethod">KZ.Borders;GetBorders</property>
+    <property name="hoverOpacity">0.4</property>
+    <property name="latitude">49</property>
+    <property name="latitudeProperty">Latitude</property>
+    <property name="longitude">66</property>
+    <property name="longitudeProperty">Longitude</property>
+    <property name="markerDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,ParameterId,Level,CenterName,SpecialIcon</property>
+    <property name="markerIcon">http://i.imgur.com/pBB7MYT.png</property>
+    <property name="markerSpecialIcon">http://i.imgur.com/bFJRQfv.png</property>
+    <property name="markerSpecialProperty">SpecialIcon</property>
+    <property name="markerTitleProperty">Name</property>
+    <property name="onclickmarker"></property>
+    <property name="onclickpolygon"></property>
+    <property name="ondrilldown"></property>
+    <property name="ondrillup"></property>
+    <property name="onrightclickmarker"></property>
+    <property name="onrightclickpolygon"></property>
+    <property name="polygonDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,DataUrl,ParameterId,Level,CenterName</property>
+    <property name="polygonTitleProperty">Name</property>
+    <property name="saveBordersMethod"></property>
+    <property name="strokeOpacity">1</property>
+    <property name="strokeWeight">1</property>
+    <property name="zoom">5</property>
+  </widget>
+</dashboard>
+</Document></Export>

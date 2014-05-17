@@ -1,0 +1,934 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="KZ.MapPortlet">
+<Description>
+checkIt
+Portlet that displays a clickable google map. Supports 2012.2 and higher versions of Cache.
+Improvements compared to %DeepSee.Component.Widget.map:
+1) Polygon support. In addition to markers, this widget supports clickable colored polygons with tooltips.
+   The "coordsProperty" widget setting should be set to the name of a data source property that provides polygon coordinates. The value of this property is expected to contain one or more ordered sequences of coordinates each of which designates a closed loop.
+   Sequences are delimited by ; (semicolon). Coordinates in such a sequence are delimited by spaces, for example: 42.725042,55.257428,0 42.727162,55.270206,0 42.737196,55.27019,0 42.725042,55.257428,0
+   Each coordinate triple consists of latitude / longitude numbers and a noWrap flag (see http://code.google.com/intl/en/apis/maps/documentation/javascript/reference.html#LatLng for details).
+   An alternative approach is to store polygon coordinates in a static js file rather than in the database. See coordsJsFile property description for details.
+2) Configurable names of data source properties that provide marker and polygon data (latitude, longitude, color, opacity etc).
+3) Configurable "onclick" handler for markers and polygons. Configurable "onaddpolygon" and "onaddmarker" handlers.
+4) Drilldown capabilities.
+5) Convenience javascript methods: createInfoWindowAtPosition() and getControl().</Description>
+<Super>%DeepSee.Component.Portlet.abstractPortlet</Super>
+<TimeCreated>63223,54909.281803</TimeCreated>
+
+<Parameter name="XMLTYPE">
+<Default>KZXMLTYPE</Default>
+</Parameter>
+
+<Parameter name="INCLUDEFILES">
+<Default><![CDATA[script:http://api-maps.yandex.ru/2.0/?load=package.full&lang=ru-RU]]></Default>
+</Parameter>
+
+<Property name="saveBordersMethod">
+<Description>
+Method name for save slider range borders</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="getBordersMethod">
+<Description>
+Method name to get slider range borders</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="getAdditionInfoForObjectById">
+<Description>
+Method name to get proxyObject with other info for object</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="latitude">
+<Description>
+Initial latitude (as a decimal number).</Description>
+<Type>%ZEN.Datatype.float</Type>
+<InitialExpression>42.36</InitialExpression>
+</Property>
+
+<Property name="longitude">
+<Description>
+Initial longitude (as a decimal number).</Description>
+<Type>%ZEN.Datatype.float</Type>
+<InitialExpression>288.92</InitialExpression>
+</Property>
+
+<Property name="zoom">
+<Description>
+Initial zoom level (0 shows entire globe).</Description>
+<Type>%ZEN.Datatype.integer</Type>
+<InitialExpression>12</InitialExpression>
+</Property>
+
+<Property name="mapType">
+<Description>
+Initial map display.</Description>
+<Type>%ZEN.Datatype.string</Type>
+<InitialExpression>"ROADMAP"</InitialExpression>
+<Parameter name="VALUELIST" value=",ROADMAP,SATELLITE,HYBRID,TERRAIN"/>
+</Property>
+
+<Property name="markersDraggable">
+<Description>
+If true, then the markers on this map are draggable.</Description>
+<Type>%ZEN.Datatype.boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="latitudeProperty">
+<Description>
+Name of property in data source that provides the latitude value for a marker.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="longitudeProperty">
+<Description>
+Name of property in data source that provides the longitude value for a marker.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="coordsProperty">
+<Description>
+Name of property in data source that provides the coordinates array for a polygon.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="colorProperty">
+<Description>
+Name of property in data source that provides the color of a polygon.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="onclickmarker">
+<Description>
+onclickmarker event handler: if defined, this event is fired when a marker is clicked.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="onrightclickmarker">
+<Description>
+onrightclickmarker event handler: if defined, this event is fired when a marker is clicked.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="onclickpolygon">
+<Description>
+onclickpolygon event handler: if defined, this event is fired when a polygon is clicked.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="onrightclickpolygon">
+<Description>
+onrightclickpolygon event handler: if defined, this event is fired when a polygon is clicked.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="markerTitleProperty">
+<Description>
+Name of property in data source that provides the title of a marker (used for tooltip text).</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="polygonTitleProperty">
+<Description>
+Name of property in data source that provides the title of a polygon (used for tooltip text).</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="markerDataProperties">
+<Description>
+List of properties in data source that provides data to be stored within the current marker. This data is visible from onclick event handler.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="polygonDataProperties">
+<Description>
+List of properties in data source that provides data to be stored within the current polygon. This data is visible from onclick event handler.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="ondrilldown">
+<Description>
+ondrilldown event handler: if defined, this event is fired from drillDown() method.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="ondrillup">
+<Description>
+ondrillup event handler: if defined, this event is fired from drillUp() method.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="fillOpacityProperty">
+<Description>
+Name of property in data source that provides polygon fill opacity.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="isClickableProperty">
+<Description>
+Name of property in data source that provides "сlickable" attribute value for markers and polygons.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="hoverOpacity">
+<Description>
+Hover opacity for clickable polygons.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="strokeOpacity">
+<Description>
+Polygon stroke opacity.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="strokeWeight">
+<Description>
+Polygon stroke weight.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="fillOpacity">
+<Description>
+Default fillOpacity for polygons.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="markerIconProperty">
+<Description>
+Name of property in data source that provides icon href for markers.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="markerIcon">
+<Description>
+Default marker icon href.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="markerSpecialIcon">
+<Description>
+Special marker icon href.                                                                     [+]</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="markerSpecialProperty">
+<Description>
+Special marker property                                                                       [+]</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="markerIconSize">
+<Description>
+Marker icon size (ignored if both markerIcon and markerIconProperty are not set).</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="onapplyfilters">
+<Description>
+onapplyfilters event handler</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="onaddpolygon">
+<Description>
+onaddpolygon event handler</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="onaddmarker">
+<Description>
+onaddmarker event handler</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="coordsJsFile">
+<Description><![CDATA[
+JS file containing "function loadCoordinates(polygonCoordsArray) {}" that populates a polygon coordinates associative array.
+If <var>coordsJsFile</var> is specified then <var>coordsProperty</var> must contain name of the property that provides keys for the coordinates associative array.]]></Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="drillUpButtonPosition">
+<Description><![CDATA[
+Where "<< Back" button is located]]></Description>
+<Type>%ZEN.Datatype.string</Type>
+<InitialExpression>"top"</InitialExpression>
+<Parameter name="VALUELIST" value="top,bottom"/>
+</Property>
+
+<Method name="%OnGetPortletName">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	quit "KZ Map"
+]]></Implementation>
+</Method>
+
+<Method name="%OnGetPortletIcon">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	quit "deepsee/world_48.gif"
+]]></Implementation>
+</Method>
+
+<Method name="%OnGetPortletSettings">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>*pInfo:%List</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	kill pInfo
+	// $LB(name,value,type,caption,title)
+
+	set tTypeList = "ENUM^"_$$$Text("Roadmap","%DeepSee")_":ROADMAP,"_
+			$$$Text("Satellite","%DeepSee")_":SATELLITE,"_
+			$$$Text("Hybrid","%DeepSee")_":HYBRID,"_
+			$$$Text("Terrain","%DeepSee")_":TERRAIN"
+
+	
+	set pInfo($I(pInfo)) = $LB("mapType","",tTypeList,$$$Text("Map Type","%DeepSee"),$$$Text("Initial display type for the map","%DeepSee"))
+	set pInfo($I(pInfo)) = $LB("zoom",12,"%Integer",$$$Text("Zoom","%DeepSee"),$$$Text("Initial zoom level for the map","%DeepSee"))
+	set pInfo($I(pInfo)) = $LB("latitude",55.74,"%Number",$$$Text("Starting latitude","%DeepSee"),$$$Text("Initial latitude for the map","%DeepSee"))
+	set pInfo($I(pInfo)) = $LB("longitude",37.6,"%Number",$$$Text("Starting longitude","%DeepSee"),$$$Text("Initial longitude for the map","%DeepSee"))
+
+	set pInfo($I(pInfo)) = $LB("onclickmarker","","%ZEN.Datatype.eventHandler","'onclickmarker' event handler","User callback for onclickmarker event")
+	set pInfo($I(pInfo)) = $LB("onrightclickmarker","","%ZEN.Datatype.eventHandler","'onrightclickmarker' event handler","User callback for onrightclickmarker event")
+	set pInfo($I(pInfo)) = $LB("markersdraggable",1,"%Boolean","Draggable markers?","Toggle markers drag'n'drop.")
+
+	set pInfo($I(pInfo)) = $LB("latitudeProperty","","%ZEN.Datatype.string","Latitude property","Latitude property for markers")
+	set pInfo($I(pInfo)) = $LB("longitudeProperty","","%ZEN.Datatype.string","Longitude property","Longitude property for markers")
+	set pInfo($I(pInfo)) = $LB("markerTitleProperty","","%ZEN.Datatype.string","Marker title property","Title property for markers")
+	set pInfo($I(pInfo)) = $LB("markerDataProperties","","%ZEN.Datatype.string","Marker data properties","List of data properties for markers")
+	set pInfo($I(pInfo)) = $LB("markerIconProperty","","%ZEN.Datatype.string","Marker icon property","Marker icon property")
+	set pInfo($I(pInfo)) = $LB("markerIcon","","%ZEN.Datatype.string","Marker icon","Default marker icon")
+	set pInfo($I(pInfo)) = $LB("markerSpecialIcon","","%ZEN.Datatype.string","Marker special icon","Marker icon for special place")
+	set pInfo($I(pInfo)) = $LB("markerSpecialProperty","","%ZEN.Datatype.string","Marker special property","Marker special property for special icon")
+	set pInfo($I(pInfo)) = $LB("markerIconSize","","%ZEN.Datatype.string","Marker icon size","Default marker icon size (ingored if Marker icon is not set)")
+	
+	set pInfo($I(pInfo)) = $LB("coordsJsFile","","%ZEN.Datatype.string","JS file with coords","JS file with javascript 'function loadCoordinates(polygonCoordsArray) {...}' that populates polygonCoordsArray argument with polygon coordinates keyed by values from the data source property specified in 'Polygon coords property' setting.")
+	set pInfo($I(pInfo)) = $LB("coordsProperty","","%ZEN.Datatype.string","Polygon coords property","Data source property that provides coordinates for polygons if 'JS file with coords' is not specified. Otherwise this setting should contain name of data source property that provides keys for associative array which is populated by javascript code in 'JS file with coords'.")
+	
+	set pInfo($I(pInfo)) = $LB("onclickpolygon","","%ZEN.Datatype.eventHandler","'onclickpolygon' event handler","User callback for onclickpolygon event")	
+	set pInfo($I(pInfo)) = $LB("onrightclickpolygon","","%ZEN.Datatype.eventHandler","'onrightclickpolygon' event handler","User callback for onrightclickpolygon event")	
+	
+	
+	set pInfo($I(pInfo)) = $LB("colorProperty","","%ZEN.Datatype.string","Polygon сolor property","Color property for polygons")
+	set pInfo($I(pInfo)) = $LB("polygonTitleProperty","","%ZEN.Datatype.string","Polygon title property","Title property for polygons")
+	set pInfo($I(pInfo)) = $LB("polygonDataProperties","","%ZEN.Datatype.string","Polygon data properties","List of data properties for polygons")
+	set pInfo($I(pInfo)) = $LB("fillOpacityProperty","","%ZEN.Datatype.string","Fill opacity property","Fill opacity property for polygons")
+	set pInfo($I(pInfo)) = $LB("isClickableProperty","","%ZEN.Datatype.string","IsClickable flag property","IsClickable flag property for polygons")
+	
+	set pInfo($I(pInfo)) = $LB("fillOpacity","","%ZEN.Datatype.string","Fill opacity","Default fill opacity for polygons")
+	set pInfo($I(pInfo)) = $LB("hoverOpacity","","%ZEN.Datatype.string","Hover opacity","Hover opacity for clickable polygons")
+	set pInfo($I(pInfo)) = $LB("strokeOpacity","","%ZEN.Datatype.string","Stroke opacity","Stroke opacity for polygons")
+	set pInfo($I(pInfo)) = $LB("strokeWeight","","%ZEN.Datatype.string","Stroke weight","Stroke weight for polygons")
+	
+	set pInfo($I(pInfo)) = $LB("drillUpButtonPosition","top","ENUM^top,bottom","Drill-up button position","Where ""<< Back"" button is located")
+		
+	set pInfo($I(pInfo)) = $LB("ondrilldown","","%ZEN.Datatype.eventHandler","'ondrilldown' event handler","User callback for ondrilldown event")
+	set pInfo($I(pInfo)) = $LB("ondrillup","","%ZEN.Datatype.eventHandler","'ondrillup' event handler","User callback for ondrillup event")
+	
+	set pInfo($I(pInfo)) = $LB("onapplyfilters","","%ZEN.Datatype.eventHandler","'onapplyfilters' event handler","User callback for onapplyfilters event")
+	set pInfo($I(pInfo)) = $LB("onaddpolygon","","%ZEN.Datatype.eventHandler","'onaddpolygon' event handler","User callback for onaddpolygon event")
+	set pInfo($I(pInfo)) = $LB("onaddmarker","","%ZEN.Datatype.eventHandler","'onaddmarker' event handler","User callback for onaddmarker event")
+	
+
+	//[+]
+	set pInfo($I(pInfo)) = $LB("saveBordersMethod","ClassName;MethodName","%String","Save borders method","Method for save range borders, pattern - 'ClassName;MethodName', method takes a single parameter(object) - {parameterId: X, level: X, parentRegionId:X, minValue: X, maxValue: X}. parentRegionId - may be null if this first level")		
+	set pInfo($I(pInfo)) = $LB("getBordersMethod","ClassName;MethodName","%String","Get borders method","Method to get an range borders, pattern - 'ClassName;MethodName', method takes a single parameter(object) - {parameterId: X, level: X, parentRegionId:X}. parentRegionId - may be null if this first level")		
+	set pInfo($I(pInfo)) = $LB("getAdditionInfoForObjectById","ClassName;MethodName","%String","Get addition info for object","Method to get an proxyObject with other information, pattern - 'ClassName;MethodName', method takes a single parameter(string) - object id. Call this method like this - 'var otherInfo = zenThis.GetAdditionInformationForObjectById(id);'")		
+	
+
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="renderContents">
+<Description>
+Client-side method to render control.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('renderContents() //render control');
+	//------------------------------
+	
+	this._mapObject = null;
+	var mapDiv = this.getEnclosingDiv();
+
+	// test if we have not been rendered yet
+	if (mapDiv == null) return;
+
+	// make sure our div has some area
+	var width = isNaN(parseFloat(this.width)) ? 200 : parseFloat(this.width);
+	var height = isNaN(parseFloat(this.height)) ? 200 : parseFloat(this.height);
+	if ('' == this.enclosingStyle) {
+		mapDiv.style.width = width + 'px';
+		mapDiv.style.height = height + 'px';
+	}
+
+	// get data from controller, if present.
+	this.acquireData();
+
+	// create map
+	this.initMap(mapDiv);
+
+	zenPage.dashboardEventHandler('', '', '', 'refresh', '*', '');
+]]></Implementation>
+</Method>
+
+<Method name="initMap">
+<Description>
+Initialize the map</Description>
+<FormalSpec>mapDiv</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('initMap(mapDiv)');
+	//------------------------------
+	
+	
+	if (('undefined' == typeof ymaps)||('undefined' == typeof ymaps.Map)) {
+		mapDiv.innerHTML = $$$Text('Unable to load ya map api.');
+		return;
+	}
+	
+	// Отключить использование тестовых версий карты
+	//google.maps.visualRefresh = false;
+
+
+	var mapTypeId = 'yandex#map';
+     //this.getMapTypeId(this.mapType);
+	
+	//this.latitude = parseFloat(this.latitude);
+	//if (isNaN(this.latitude)) this.latitude = 42.36;
+	
+	//this.longitude = parseFloat(this.longitude);
+	//if (isNaN(this.longitude)) this.longitude = 42.36;
+	
+	//var mapLatlng = new ymaps.Map.LatLng(this.latitude, this.longitude);
+	
+	this.zoom = parseInt(this.zoom, 10);
+	if (isNaN(this.zoom)) this.zoom = 0;
+	
+	var mapOptions = {
+    center: [42.36, 42.36],
+    zoom: 10,
+    ignoreResize: true
+    }
+	var map = new ymaps.Map(mapDiv, mapOptions);
+	this._mapObject = map;
+	console.log(mapDiv);
+	console.log(map);
+	
+	// array of markers
+	this._markers = [];
+	
+	// array of polygons
+	this._polygons = [];
+]]></Implementation>
+</Method>
+
+<Method name="getMapObject">
+<Description>
+Return the google map API object used by the map view.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('getMapObject()');
+	//------------------------------
+	
+	
+	return this._mapObject;
+]]></Implementation>
+</Method>
+
+<Method name="getMapTypeId">
+<Description>
+Given the name of a map type, convert to a map type id.</Description>
+<FormalSpec>type</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('getMapTypeId(type)');
+	//------------------------------
+	
+	
+	if (('undefined' == typeof ymaps)||('undefined' == typeof ymaps.Map)){
+		return '';
+	}
+	var mapType ='yandex#hybrid'; //= google.maps.MapTypeId.ROADMAP;
+	switch (type) {
+	case 'yandex#hybrid':
+	//	mapType = google.maps.MapTypeId.HYBRID;
+		break;
+	case 'yandex#satellite':
+		//mapType = google.maps.MapTypeId.SATELLITE;
+		break;
+	case 'yandex#map':
+	//	mapType = 'yandex#map';
+		break;
+	case 'yandex#publicMap':
+	default:
+		break;
+	}
+
+	return mapType;
+]]></Implementation>
+</Method>
+
+<Method name="notifyViewHandler">
+<Description>
+Notification that the dataController associated with this dataView has raised an event.</Description>
+<FormalSpec>reason,data1,data2,data3</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('notifyViewHandler(reason, data1, data2, data3)');
+	//------------------------------
+	
+	
+	switch(reason) {
+	case 'dataChange':
+		this.onApplyFilters(true);
+	case 'modelChange':
+		// some change in dataController
+		this.acquireData();
+		break;
+	case 'seriesChange':
+		break;
+	}
+]]></Implementation>
+</Method>
+
+<Method name="acquireData">
+<Description>
+Internal method: acquire data for this view and store a copy in a local cache.</Description>
+<Internal>1</Internal>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('acquireData()');
+	//------------------------------
+	
+	
+	var controller = this.getController();
+	if (null == controller) {
+		// try to connect to dataController
+		this.connectToController();
+		controller = this.getController();
+	}
+
+	// array of marker data
+	this._markerData = [];
+	
+	if (controller && (this.latitudeProperty != '') && (this.longitudeProperty != ''))
+	{
+		// get data from controller (make sure data is loaded)
+		var dims = controller.getDimensions();
+		
+		// are we connected to a pivot table?
+		var invert = controller.getSelectedRange;
+		if (!invert) {
+			var seriesSize = controller.getDimSize(1);
+			var seriesCount = controller.getDimSize(2);
+			var labelDim = 2;
+			var titleCol = -1;
+			var latCol = -1;
+			var longCol = -1;
+			var clickableCol = -1;
+			var miCol = -1;
+			var specIconCol = -1;
+		}
+		else {
+			var seriesSize = controller.getDimSize(2);
+			var seriesCount = controller.getDimSize(1);
+			var labelDim = 1;
+		}
+		
+		if (seriesCount > 0)
+		{
+			// find long and lat and title columns
+			if (!invert)
+				for (var p = 0; p < seriesSize; p++) 
+				{
+					var pname = controller.getPropertyName(p);
+					if (pname == this.latitudeProperty) {
+						latCol = p;
+					}
+					if (pname == this.longitudeProperty) {
+						longCol = p;
+					}
+					if (pname == this.markerTitleProperty) {
+						titleCol = p;
+					}
+					if (pname == this.isClickableProperty) {
+						clickableCol = p;
+					}
+					if (pname == this.markerIconProperty) {
+						miCol = p;
+					}
+					if (pname == this.markerSpecialProperty) {
+						specIconCol = p;
+					}
+				}
+		
+			
+			// each series corresponds to a marker
+			if (invert || (latCol >= 0 && longCol >= 0))
+				for (var n = 0; n < seriesCount; n++) 
+				{
+					var isClickable = 1;
+					var mi = null;
+					var specIcon = 0;
+					var sname = controller.getLabel(n,labelDim);
+
+					if (!invert) {
+						var lat = controller.getData(latCol,n);
+						var long = controller.getData(longCol,n);
+						if (titleCol >= 0) sname = controller.getData(titleCol,n);
+						if (clickableCol >= 0) isClickable = controller.getData(clickableCol,n);
+						if (miCol >= 0) mi = controller.getData(miCol,n);
+						if (specIconCol >= 0) specIcon = controller.getData(specIconCol,n);
+					}
+					else {
+						var lat = controller.getDataByName(this.latitudeProperty,n);
+						var long = controller.getDataByName(this.longitudeProperty,n);
+						if (this.markerTitleProperty != '') sname = controller.getDataByName(this.markerTitleProperty,n);
+						if (this.isClickableProperty != '') isClickable = controller.getDataByName(this.isClickableProperty,n);
+						if (this.markerIconProperty != '') mi = controller.getDataByName(this.markerIconProperty,n);
+						if (this.markerSpecialProperty != '') specIcon = controller.getDataByName(this.markerSpecialProperty,n);
+					}
+			
+					if (!isNaN(parseFloat(lat)) && !isNaN(parseFloat(long))) {
+						var data = [];
+						if (this.markerDataProperties != '')
+						{
+							var props = this.markerDataProperties.split(",");
+							for (var i = 0; i < props.length; i++) {
+							    data[props[i]] = controller.getDataByName(props[i],n);
+							}
+						}
+						
+						if (!mi) mi = this.markerIcon;
+					
+						this._markerData[this._markerData.length] = {
+							title: sname,
+							latitude: lat,
+							longitude: long,
+							isClickable: (!isClickable ? 1 : isClickable),
+							icon: mi,
+							specialIcon: specIcon,
+							data: data
+						};
+					}
+				}
+		}
+	}
+	
+	// array of polygon data
+	this._polygonData = [];
+	
+	if (this.coordsJsFile && !this._polygonCoords)
+	{
+		this._polygonCoords = [];
+		loadCoordinates(this._polygonCoords);
+	}
+	
+	if (controller && (this.coordsProperty != '')) 
+	{
+		// get data from controller (make sure data is loaded)
+		var dims = controller.getDimensions();
+		
+		// are we connected to a pivot table?
+		var invert = controller.getSelectedRange;
+		if (!invert) {
+			var seriesSize = controller.getDimSize(1);
+			var seriesCount = controller.getDimSize(2);
+			var labelDim = 2;
+			var titleCol = -1;
+			var coordsCol = -1;
+			var colorCol = -1;
+			var foCol = -1;
+			var clickableCol = -1;
+		}
+		else {
+			var seriesSize = controller.getDimSize(2);
+			var seriesCount = controller.getDimSize(1);
+			var labelDim = 1;
+		}
+
+		if (seriesCount > 0)
+		{
+			// find coords and color columns
+			if (!invert)
+				for (var p = 0; p < seriesSize; p++) 
+				{
+					var pname = controller.getPropertyName(p);
+					if (pname == this.coordsProperty) {
+						coordsCol = p;
+					}
+					if (pname == this.colorProperty) {
+						colorCol = p;
+					}
+					if (pname == this.fillOpacityProperty) {
+						foCol = p;
+					}
+					if (pname == this.isClickableProperty) {
+						clickableCol = p;
+					}					
+					if (pname == this.polygonTitleProperty) {
+						titleCol = p;
+					}
+				}
+
+			// each series corresponds to a poly
+			for (var n = 0; n < seriesCount; n++)
+			{
+				var color = 'purple';
+				var fo = this.fillOpacity;  // default opacity
+				var isClickable = 1;
+				
+				var sname = controller.getLabel(n,labelDim);
+
+				if (!invert) {
+					if (coordsCol<0) break;
+					var coords = controller.getData(coordsCol,n);
+					if (colorCol >= 0) color = controller.getData(colorCol,n);
+					if (foCol >= 0) fo = controller.getData(foCol,n);
+					if (clickableCol >= 0) isClickable = controller.getData(clickableCol,n);
+					if (titleCol >= 0) sname = controller.getData(titleCol,n);
+				}
+				else {
+					var coords = controller.getDataByName(this.coordsProperty,n);
+					if (this.colorProperty != '') color = controller.getDataByName(this.colorProperty,n);
+					if (this.fillOpacityProperty != '') fo = controller.getDataByName(this.fillOpacityProperty,n);
+					if (this.isClickableProperty != '') isClickable = controller.getDataByName(this.isClickableProperty,n);
+					if (this.polygonTitleProperty != '') sname = controller.getDataByName(this.polygonTitleProperty,n);
+				}
+				
+				if (!fo) fo = this.fillOpacity;  // default opacity
+
+				if (this.coordsJsFile) coords = this._polygonCoords[coords];
+				
+				if (!coords) continue;
+				
+				var pathsSets = coords.split(";");
+				for (var j = 0; j < pathsSets.length; j++) {
+					var paths = pathsSets[j].split(" ");
+					for (var i = 0; i < paths.length; i++) {
+						var p = paths[i].split(",");
+					    paths[i] = YMaps.GeoPoint(p[1], p[0], p[2]);
+                      
+					}
+					pathsSets[j] = paths;
+				}
+			
+				var data = [];
+			
+				if (this.polygonDataProperties != '')
+				{
+					var props = this.polygonDataProperties.split(",");
+					for (var i = 0; i < props.length; i++) {
+					    data[props[i]] = controller.getDataByName(props[i],n);
+					}
+				}
+				
+				this._polygonData[this._polygonData.length] = {
+					title: sname,
+					coords: pathsSets,
+					color: (!color ? 'purple' : color),
+					fo: (!fo ? 0.1 : fo),
+					isClickable: (!isClickable ? 1 : isClickable),
+					data: data
+				};
+
+			}
+		}
+	}
+
+	console.log("=== this._polygonData ===");
+	console.log(this._polygonData)
+	console.log("=== this._markerData ===");
+	console.log(this._markerData)
+]]></Implementation>
+</Method>
+
+<Method name="getControl">
+<Description>
+Obtain a reference to a filter (or any other widget control).</Description>
+<FormalSpec>ind</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('getControl(ind)');
+	//------------------------------
+	
+	
+  return zenPage.getComponent(this.parent.parent.controlIndices[ind]);
+]]></Implementation>
+</Method>
+
+<Method name="getFilterStateArray">
+<Description>
+Get the array of filter state information for the widget.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('getFilterStateArray()');
+	//------------------------------
+	
+	
+	return this.parent.parent.getFilterStateArray();
+]]></Implementation>
+</Method>
+
+<Method name="panToAddress">
+<Description>
+Invoke the google geocoder api to lookup an address string and move the map to view it.
+Applications that call this are responsible for adhering to the google geocoder api terms of use.</Description>
+<FormalSpec>address</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('panToAddress(address)');
+	//------------------------------
+	
+	
+	if (('undefined' == typeof yandex)||('undefined' == typeof yandex.maps)) {
+		return '';
+	}
+
+	var callback = new Function('results','status','zenPage.getComponent('+this.index+').geocodeAddressHandler(results,status)');
+	var geocoder = new google.maps.Geocoder();
+	geocoder.geocode({ 'address': address}, callback);
+]]></Implementation>
+</Method>
+
+<Method name="geocodeAddressHandler">
+<Description>
+Callback for geocoder API.</Description>
+<Internal>1</Internal>
+<FormalSpec>results,status</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('geocodeAddressHandler(results, status)');
+	//------------------------------
+	
+	
+	if (status == google.maps.GeocoderStatus.OK) {
+		var map = this.getMapObject();
+		if (map) {
+			map.setCenter(results[0].geometry.location);
+		}
+	}
+	else {
+		alert("Address not found: " + status);
+	}
+]]></Implementation>
+</Method>
+
+<Method name="%DrawHTML">
+<Implementation><![CDATA[
+	
+	// This causes ZEN to render this component on the client.
+	set ..renderFlag = ..renderFlag + 1
+	
+	// copy ..settings into properties
+	#dim propName As %String = $order(..settings(""))
+	while (propName '= "")
+	{
+		if ("" '= $get(..settings(propName)))
+			try
+			{
+				set $property($this, propName) = ..settings(propName)
+			}
+			catch {}
+
+		set propName = $order(..settings(propName))
+	}
+	
+	&html<<script type="text/javascript">
+	function hsv2rgb(h,s,v) 
+	{
+		// Adapted from http://www.easyrgb.com/math.html
+		// hsv values = 0 - 1, rgb values = 0 - 255
+		var r, g, b;
+		var RGB = new Array();
+		if(s == 0)
+		{
+		  RGB['red']=RGB['green']=RGB['blue']=Math.round(v*255);
+		}
+		else
+		{
+		  var var_h = h * 6;  // h must be < 1
+		  if (var_h == 6) var_h = 0;
+		  var var_i = Math.floor( var_h );
+		  var var_1 = v*(1-s);
+		  var var_2 = v*(1-s*(var_h-var_i));
+		  var var_3 = v*(1-s*(1-(var_h-var_i)));
+		  if (var_i == 0)
+		  {
+		    var_r = v; 
+		    var_g = var_3; 
+		    var_b = var_1;
+		  }
+		  else if (var_i == 1)
+		  {
+		    var_r = var_2;
+		    var_g = v;
+		    var_b = var_1;
+		  }
+		  else if (var_i == 2)
+		  {
+		    var_r = var_1;
+		    var_g = v;
+		    var_b = var_3
+		  }
+		  else if (var_i == 3)
+		  {
+		    var_r = var_1;
+		    var_g = var_2;
+		    var_b = v;
+		  }
+		  else if (var_i == 4)
+		  {
+		    var_r = var_3;
+		    var_g = var_1;
+		    var_b = v;
+		  }
+		  else
+		  {
+		    var_r = v;
+		    var_g = var_1;
+		    var_b = var_2
+		  }
+		  RGB['red'] = Math.round(var_r * 255);
+		  RGB['green'] = Math.round(var_g * 255);
+		  RGB['blue'] = Math.round(var_b * 255);
+		}
+		return '#' + RGB['red'].toString(16) + RGB['green'].toString(16) + RGB['blue'].toString(16);
+	};
+	</script>>
+	
+	if (..coordsJsFile '= "")
+	{
+		&html<<script type='text/javascript' src='#(..coordsJsFile)#'></script>>
+	}
+]]></Implementation>
+</Method>
+
+<Method name="onApplyFilters">
+<Internal>1</Internal>
+<FormalSpec>refresh</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	zenInvokeCallbackMethod(this.onapplyfilters,this,'onapplyfilters','refresh',refresh);
+]]></Implementation>
+</Method>
+</Class>
+</Export>
