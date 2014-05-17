@@ -353,28 +353,21 @@ Client-side method to render control.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('renderContents() //render control');
-	//------------------------------
-	
 	this._mapObject = null;
 	var mapDiv = this.getEnclosingDiv();
-
+	
 	// test if we have not been rendered yet
 	if (mapDiv == null) return;
-
-	// make sure our div has some area
-	var width = isNaN(parseFloat(this.width)) ? 200 : parseFloat(this.width);
-	var height = isNaN(parseFloat(this.height)) ? 200 : parseFloat(this.height);
-	if ('' == this.enclosingStyle) {
-		mapDiv.style.width = width + 'px';
-		mapDiv.style.height = height + 'px';
-	}
-
+	
+	mapDiv.style.height = "600px";	
+	mapDiv.style.width = "1300px";
+	
 	// get data from controller, if present.
 	this.acquireData();
-
+	
 	// create map
-	//this.initMap(mapDiv);
+	this.initMap(mapDiv);
+
 
 	zenPage.dashboardEventHandler('', '', '', 'refresh', '*', '');
 ]]></Implementation>
@@ -387,7 +380,7 @@ Initialize the map</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('initMap(mapDiv)');
+
 	//------------------------------
 	
 	
@@ -414,15 +407,15 @@ Initialize the map</Description>
 	this.zoom = parseInt(this.zoom, 10);
 	if (isNaN(this.zoom)) this.zoom = 0;
 	
+	
+	
 	var mapOptions = {
-    center: [42.36, 42.36],
-    zoom: 10,
-    ignoreResize: true
+    	center: [42.36, 42.36],
+    	zoom: 10,
+    	type: 'yandex#satellite'
     }
-	var map = new ymaps.Map(mapDiv, mapOptions);
-	this._mapObject = map;
-	console.log(mapDiv);
-	console.log(map);
+    
+	this._mapObject = new ymaps.Map(mapDiv, mapOptions);
 	
 	// array of markers
 	this._markers = [];
@@ -511,6 +504,7 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
+		
 	console.log('acquireData()');
 	//------------------------------
 	
