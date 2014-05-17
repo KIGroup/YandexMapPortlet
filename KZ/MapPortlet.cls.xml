@@ -374,7 +374,7 @@ Client-side method to render control.</Description>
 	this.acquireData();
 
 	// create map
-	this.initMap(mapDiv);
+	//this.initMap(mapDiv);
 
 	zenPage.dashboardEventHandler('', '', '', 'refresh', '*', '');
 ]]></Implementation>
