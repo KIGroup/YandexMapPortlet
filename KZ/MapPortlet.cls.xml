@@ -982,11 +982,11 @@ Calculate color for polygon</Description>
 ]]></Implementation>
 </Method>
 
-<UDLText name="T">
-<Content><![CDATA[
-/*
-ClientMethod addPolygon(id, coords, color, fo, isClickable, title, data) [ Language = javascript ]
-{
+<Method name="addPolygon">
+<FormalSpec>id,coords,color,fo,isClickable,title,data</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
 	console.log('addPolygon(id, coords, color, fo, isClickable, title, data)');
 	//------------------------------
 	
@@ -1040,16 +1040,15 @@ polygon.description = title;
 		YMaps.Events.observe(polygon, polygon.Events.MouseLeave, code);
 	}
 	return polygon;
-}
-
-/// Add a polygon to the map at given coordinates.<br/>
-/// <var>id</var> is a user-defined identifier associated with the polygon.<br/>
-/// Returns the polygon object.
-/// Internal method: sync polygons to data from controller.*/
-]]></Content>
-</UDLText>
+]]></Implementation>
+</Method>
 
 <Method name="syncPolygons">
+<Description><![CDATA[
+Add a polygon to the map at given coordinates.<br/>
+<var>id</var> is a user-defined identifier associated with the polygon.<br/>
+Returns the polygon object.
+Internal method: sync polygons to data from controller.*/]]></Description>
 <Internal>1</Internal>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
