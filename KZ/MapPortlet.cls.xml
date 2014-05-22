@@ -371,7 +371,7 @@ Client-side method to render control.</Description>
      // add polygons
 	this.syncPolygons();
 	
-	zenPage.dashboardEventHandler('', '', '', 'refresh', '*', '');
+	//zenPage.dashboardEventHandler('', '', '', 'refresh', '*', '');
 ]]></Implementation>
 </Method>
 
@@ -484,17 +484,17 @@ Notification that the dataController associated with this dataView has raised an
 <Implementation><![CDATA[
 	console.log('notifyViewHandler(reason, data1, data2, data3)');
 	//------------------------------
-	
-	
 	switch(reason) {
-	case 'dataChange':
-		this.onApplyFilters(true);
-	case 'modelChange':
-		// some change in dataController
-		this.acquireData();
-		break;
-	case 'seriesChange':
-		break;
+		case 'dataChange':
+			this.onApplyFilters(true);
+		case 'modelChange':
+			// some change in dataController
+			this.acquireData();
+			//this.syncMarkers();
+			this.syncPolygons();
+			break;
+		case 'seriesChange':
+			break;
 	}
 ]]></Implementation>
 </Method>
@@ -984,7 +984,8 @@ Calculate color for polygon</Description>
 
 <UDLText name="T">
 <Content><![CDATA[
-/*ClientMethod addPolygon(id, coords, color, fo, isClickable, title, data) [ Language = javascript ]
+/*
+ClientMethod addPolygon(id, coords, color, fo, isClickable, title, data) [ Language = javascript ]
 {
 	console.log('addPolygon(id, coords, color, fo, isClickable, title, data)');
 	//------------------------------
@@ -1040,36 +1041,31 @@ polygon.description = title;
 	}
 	return polygon;
 }
-*/
+
+/// Add a polygon to the map at given coordinates.<br/>
+/// <var>id</var> is a user-defined identifier associated with the polygon.<br/>
+/// Returns the polygon object.
+/// Internal method: sync polygons to data from controller.*/
 ]]></Content>
 </UDLText>
 
 <Method name="syncPolygons">
-<Description><![CDATA[
-Add a polygon to the map at given coordinates.<br/>
-<var>id</var> is a user-defined identifier associated with the polygon.<br/>
-Returns the polygon object.
-Internal method: sync polygons to data from controller.]]></Description>
 <Internal>1</Internal>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
+	
+    console.log('syncPolygons');
     
-   
-	function TooltipOverlay(map, title)
-	{
-		this.map_ = map; 
-		this.div_ = null;
-		this.title_ = title;
-		this.setMap(map);
-	};
-  	
-	TooltipOverlay.prototype = new YMaps.IOverlay();
-	/*
-	TooltipOverlay.prototype.onAddToMap = function()
-	{
+    function prototype(upThis)
+    {
+      
+
+       // Вызывается при добавления метки на карту 
+      this.onAddToMap = function()
+	  {
 		var div = document.createElement('div');
-		div.appendChild(document.createTextNode(this.title_));
+		div.appendChild(document.createTextNode(upThis.title_));
 		div.style.border = 'solid 1px #000000';
 		div.style.color = '#000000';
 		div.style.backgroundColor = '#ffffe1';
@@ -1085,37 +1081,49 @@ Internal method: sync polygons to data from controller.]]></Description>
 		div.style.padding = '2px 3px'; 
 		div.style.position = 'absolute';
 		div.style.visibility = "hidden";
-		this.div_ = div;
+		upThis.div_ = div;
 		
-		var panes = this.getPanes();
+		var panes = upThis.getPanes();
 		panes.floatShadow.appendChild(div);
-	}
-	
-	TooltipOverlay.prototype.onRemoveFromMap = function() 
+	  }
+
+    // Вызывается при удаление метки с карты
+    this.onRemoveFromMap = function() 
 	{
-		if (this.div_) this.div_.parentNode.removeChild(this.div_);
-		this.div_ = null;
-	}
-	
-	
-	TooltipOverlay.prototype.onMapUpdate = function() {}
-	
-	TooltipOverlay.prototype.hide = function() 
-	{
-		if (this.div_) this.div_.style.visibility = "hidden";
+		if (upThis.div_) upThis.div_.parentNode.removeChild(upThis.div_);
+		upThis.div_ = null;
 	}
 
-	TooltipOverlay.prototype.show = function(latLng)
+    // Вызывается при обновлении карты
+    this.onMapUpdate =function() {}
+
+    // Метод скрывает div
+    this.hide = function() 
 	{
-		if (this.div_) 
-		{
-			var point = this.getProjection().fromLatLngToDivPixel(latLng)
-			this.div_.style.left = point.x + 'px';
-			this.div_.style.top = (point.y - parseInt(this.div_.offsetHeight)) + 'px';
-			this.div_.style.visibility = "visible";
-		}
+		if (upThis.div_) upThis.div_.style.visibility = "hidden";
 	}
-	
+
+    // Показывает div
+      this.show = function(latLng)
+	  {
+		if (upThis.div_) 
+		{
+			var point = upThis.getProjection().fromLatLngToDivPixel(latLng)
+			upThis.div_.style.left = point.x + 'px';
+			upThis.div_.style.top = (point.y - parseInt(upThis.div_.offsetHeight)) + 'px';
+			upThis.div_.style.visibility = "visible";
+		}
+	  }
+    }
+	function TooltipOverlay(map, title)
+	{
+		this.map_ = map; 
+		this.div_ = null;
+		this.title_ = title;
+		this.setMap(map);
+	};
+	TooltipOverlay.prototype =  new prototype(this);
+
 	var map = this.getMapObject();
 	
 	try {
@@ -1125,7 +1133,7 @@ Internal method: sync polygons to data from controller.]]></Description>
 		}
 	
 		this.clearPolygons();
-        
+        	console.log(this._polygonData);
 		if (this._polygonData) {
 			for (var n = 0; n < this._polygonData.length; n++) {
 				var md = this._polygonData[n];
@@ -1135,10 +1143,10 @@ Internal method: sync polygons to data from controller.]]></Description>
 				}
 			}
 		}
-}
-catch(ex) {
-		alert('Error in syncPolygons ' + ex.message);
-}*/
+	}
+	catch(ex) {
+			alert('Error in syncPolygons ' + ex.message);
+	}
 ]]></Implementation>
 </Method>
 </Class>
