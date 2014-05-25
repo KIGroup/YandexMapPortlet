@@ -1005,6 +1005,7 @@ Calculate color for polygon]]></Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
+	/*
 	console.log('addPolygon(id, coords, color, fo, isClickable, title, data)');
 	//------------------------------
 	
@@ -1024,7 +1025,19 @@ Calculate color for polygon]]></Description>
             // Тип геометрии - "Многоугольник".
             type: "Polygon",
             // Указываем координаты вершин многоугольника.
-            coordinates: coords,
+            coordinates: [
+                    
+                    [60.3400, 77.5685],
+					[60.2988, 73.9936],
+                    [61.9354, 71.2689],
+                    [61.2147, 69.9404],
+                    [60.2573, 69.8525], 
+					[59.5175, 70.7534],
+					[59.2709, 72.3574], 
+					[58.9999, 73.7856],
+					[58.9432, 75.4995],
+					[59.2034, 76.9717],
+				],
             // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
             fillRule: "nonZero"
         },
@@ -1036,9 +1049,9 @@ Calculate color for polygon]]></Description>
     }, {
         // Описываем опции геообъекта.
         // Цвет заливки.
-        fillColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        fillColor: '#0000FF',//(color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
         // Цвет обводки.
-        strokeColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        strokeColor: '#0000FF',//(color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
         // Общая прозрачность (как для заливки, так и для обводки).
         opacity: 0.5,
         // Ширина обводки.
@@ -1057,7 +1070,7 @@ Calculate color for polygon]]></Description>
 	polygon._id = id;
 	var index = this._polygons.length;
 	this._polygons[index] = polygon;
-
+	
 	var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
 	polygon.events.add('Click', code);
 
@@ -1072,7 +1085,83 @@ Calculate color for polygon]]></Description>
 
 	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOut("'+index+'", event);');
 	polygon.events.add('MouseLeave', code);
-    
+    */
+    var myMap = this.getMapObject();
+      var myGeoObject5 = new ymaps.GeoObject({
+        // Описываем геометрию геообъекта.
+        geometry: {
+            // Тип геометрии - "Многоугольник".
+            type: "Polygon",
+            // Указываем координаты вершин многоугольника.
+            coordinates: [
+                // Координаты вершин внешнего контура.
+                [
+                    
+                    [60.3400, 77.5685],
+					[60.2988, 73.9936],
+                    [61.9354, 71.2689],
+                    [61.2147, 69.9404],
+                    [60.2573, 69.8525], 
+					[59.5175, 70.7534],
+					[59.2709, 72.3574], 
+					[58.9999, 73.7856],
+					[58.9432, 75.4995],
+					[59.2034, 76.9717],
+				],
+                
+            ],
+            // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
+            fillRule: "nonZero"
+        },
+        // Описываем свойства геообъекта.
+        properties:{
+            // Содержимое балуна.
+            balloonContent: "Население 67 Площадь 23"
+        }
+    }, {
+        // Описываем опции геообъекта.
+        // Цвет заливки.
+        fillColor: '#00FF00',
+        // Цвет обводки.
+        strokeColor: '#0000FF',
+        // Общая прозрачность (как для заливки, так и для обводки).
+        opacity: 0.5,
+        // Ширина обводки.
+        strokeWidth: 5,
+        // Стиль обводки.
+        strokeStyle: 'shortdash'
+    });
+                  myGeoObject5.events.add('mouseenter', function(e) {
+                var polygonBounds = myGeoObject5.geometry.getBounds(),
+                polygonCenter = [
+               (polygonBounds[0][0] + polygonBounds[1][0]) / 2,
+               (polygonBounds[0][1] + polygonBounds[1][1]) / 2
+               ],
+               polygonPixelCenter = myGeoObject5.options.get('projection').toGlobalPixels(polygonCenter, myMap.getZoom()),
+               balloonPosition = myGeoObject5.balloon.calculatePixelPosition(polygonPixelCenter);
+               myMap.hint.show([60.0034, 73.9717],"Регион 5");
+               
+                myGeoObject5.options.set({
+				    fillOpacity: 0.3
+                  
+                   
+                });
+				 
+                
+        });
+	 	myGeoObject5.events.add('mouseleave', function(e) {
+            
+                myGeoObject5.options.set({
+                   
+					fillOpacity: 0.8,
+                    
+                   
+                });
+				
+               myMap.hint.hide();
+                
+        });
+        return myGeoObject5;
 	return polygon;
 ]]></Implementation>
 </Method>
