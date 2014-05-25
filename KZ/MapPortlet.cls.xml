@@ -1072,7 +1072,7 @@ Calculate color for polygon]]></Description>
 
 	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOut("'+index+'", event);');
 	polygon.events.add('MouseLeave', code);
-
+    
 	return polygon;
 ]]></Implementation>
 </Method>
@@ -1170,9 +1170,11 @@ Internal method: sync polygons to data from controller.]]></Description>
 			var md = this._polygonData[n];
 			if (md){
 				var poly = this.addPolygon(n, md.coords, md.color, md.fo, md.isClickable, md.title, md.data);
+				this._mapObject.geoObjects.add(poly);
 				if (poly && map && md.title){ 
 					poly.tooltip = new TooltipOverlay(map, md.title);
 				}
+				
 			}
 		}
 	}
