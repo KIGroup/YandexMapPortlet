@@ -416,8 +416,33 @@ Initialize the map</Description>
     	zoom: 2,
     	type: 'yandex#satellite'
     }
-    
-	this._mapObject = new ymaps.Map(mapDiv, mapOptions);
+    /*var zoom = new YMaps.Zoom({
+    customTips: [
+        { index: 1, value: "Мелко" },
+        { index: 9, value: "Средне" },
+        { index: 16, value: "Крупно" }
+    ]
+    });
+   */
+	//this._mapObject = new ymaps.Map( mapOptions);
+	    this._mapObject = new ymaps.Map(mapDiv, {
+        center: [0, 0],
+        type: "yandex#map",
+        zoom: 3,
+        behaviors:['default', 'scrollZoom']
+    });
+  // this._mapObject.behaviors
+        // Отключаем часть включенных по умолчанию поведений:
+        //  - drag - перемещение карты при нажатой левой кнопки мыши;
+        //  - magnifier.rightButton - увеличение области, выделенной правой кнопкой мыши.
+        
+
+    // Изменяем свойство поведения с помощью опции:
+    // изменение масштаба колесом прокрутки будет происходить медленно,
+    // на 1/2 уровня масштабирования в секунду.
+    this._mapObject.options.set('scrollZoomSpeed', 1.5);
+    this._mapObject.controls
+        .add('zoomControl');
 	
 	// array of markers
 	this._markers = [];
@@ -1005,29 +1030,27 @@ Calculate color for polygon]]></Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	/*
-	console.log('addPolygon(id, coords, color, fo, isClickable, title, data)');
-	//------------------------------
-	
-	var polygon = null;
-	var map = this.getMapObject();
-	if (!map){
+	console.log('Here:');
+	console.log(this._polygonCoords);
+      var map = this.getMapObject();
+      if (!map){
 		return null;
-	}
-
-	if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
+	  }
+	  if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
 		var colorAr = color.substring(4, color.length - 1).split(",");
 		color = "rgb(" + String(parseFloat(colorAr[0])).split(".")[0] + "," + String(parseFloat(colorAr[1])).split(".")[0] + "," + String(parseFloat(colorAr[2])).split(".")[0] + ")";
-	}
-    polygon =  new ymaps.GeoObject({
+	  }
+      var polygon = new ymaps.GeoObject({
         // Описываем геометрию геообъекта.
         geometry: {
             // Тип геометрии - "Многоугольник".
             type: "Polygon",
             // Указываем координаты вершин многоугольника.
             coordinates: [
-                    
-                    [60.3400, 77.5685],
+                // Координаты вершин внешнего контура.
+                [
+                    ///[coords.getLat,coords.getLng]
+                   /* [60.3400, 77.5685],
 					[60.2988, 73.9936],
                     [61.9354, 71.2689],
                     [61.2147, 69.9404],
@@ -1036,18 +1059,20 @@ Calculate color for polygon]]></Description>
 					[59.2709, 72.3574], 
 					[58.9999, 73.7856],
 					[58.9432, 75.4995],
-					[59.2034, 76.9717],
+					[59.2034, 76.9717],*/
 				],
+                
+            ],
             // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
             fillRule: "nonZero"
         },
         // Описываем свойства геообъекта.
         properties:{
             // Содержимое балуна.
-            balloonContent: "Площадь 4 Население 8"
+            balloonContent: "Население 67 Площадь 23"
         }
     }, {
-        // Описываем опции геообъекта.
+         // Описываем опции геообъекта.
         // Цвет заливки.
         fillColor: '#0000FF',//(color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
         // Цвет обводки.
@@ -1061,9 +1086,8 @@ Calculate color for polygon]]></Description>
         fill: 1,
         outline : 1,
         strokeWidth : (this.strokeWeight ? this.strokeWeight : 3),
-     });
-
-	polygon.name = "";
+    });
+    polygon.name = "";
 	polygon.description = title;
 		
 	// add to list
@@ -1085,83 +1109,7 @@ Calculate color for polygon]]></Description>
 
 	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOut("'+index+'", event);');
 	polygon.events.add('MouseLeave', code);
-    */
-    var myMap = this.getMapObject();
-      var myGeoObject5 = new ymaps.GeoObject({
-        // Описываем геометрию геообъекта.
-        geometry: {
-            // Тип геометрии - "Многоугольник".
-            type: "Polygon",
-            // Указываем координаты вершин многоугольника.
-            coordinates: [
-                // Координаты вершин внешнего контура.
-                [
-                    
-                    [60.3400, 77.5685],
-					[60.2988, 73.9936],
-                    [61.9354, 71.2689],
-                    [61.2147, 69.9404],
-                    [60.2573, 69.8525], 
-					[59.5175, 70.7534],
-					[59.2709, 72.3574], 
-					[58.9999, 73.7856],
-					[58.9432, 75.4995],
-					[59.2034, 76.9717],
-				],
-                
-            ],
-            // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
-            fillRule: "nonZero"
-        },
-        // Описываем свойства геообъекта.
-        properties:{
-            // Содержимое балуна.
-            balloonContent: "Население 67 Площадь 23"
-        }
-    }, {
-        // Описываем опции геообъекта.
-        // Цвет заливки.
-        fillColor: '#00FF00',
-        // Цвет обводки.
-        strokeColor: '#0000FF',
-        // Общая прозрачность (как для заливки, так и для обводки).
-        opacity: 0.5,
-        // Ширина обводки.
-        strokeWidth: 5,
-        // Стиль обводки.
-        strokeStyle: 'shortdash'
-    });
-                  myGeoObject5.events.add('mouseenter', function(e) {
-                var polygonBounds = myGeoObject5.geometry.getBounds(),
-                polygonCenter = [
-               (polygonBounds[0][0] + polygonBounds[1][0]) / 2,
-               (polygonBounds[0][1] + polygonBounds[1][1]) / 2
-               ],
-               polygonPixelCenter = myGeoObject5.options.get('projection').toGlobalPixels(polygonCenter, myMap.getZoom()),
-               balloonPosition = myGeoObject5.balloon.calculatePixelPosition(polygonPixelCenter);
-               myMap.hint.show([60.0034, 73.9717],"Регион 5");
-               
-                myGeoObject5.options.set({
-				    fillOpacity: 0.3
-                  
-                   
-                });
-				 
-                
-        });
-	 	myGeoObject5.events.add('mouseleave', function(e) {
-            
-                myGeoObject5.options.set({
-                   
-					fillOpacity: 0.8,
-                    
-                   
-                });
-				
-               myMap.hint.hide();
-                
-        });
-        return myGeoObject5;
+
 	return polygon;
 ]]></Implementation>
 </Method>
@@ -1259,9 +1207,11 @@ Internal method: sync polygons to data from controller.]]></Description>
 			var md = this._polygonData[n];
 			if (md){
 				var poly = this.addPolygon(n, md.coords, md.color, md.fo, md.isClickable, md.title, md.data);
-				this._mapObject.geoObjects.add(poly);
+				
+                
 				if (poly && map && md.title){ 
 					poly.tooltip = new TooltipOverlay(map, md.title);
+					map.geoObjects.add(poly);
 				}
 				
 			}
