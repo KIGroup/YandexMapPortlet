@@ -386,7 +386,7 @@ Initialize the map</Description>
 	//------------------------------
 	
 	
-	if (('undefined' == typeof ymaps)||('undefined' == typeof ymaps.Map)) {
+	if (('undefined' == typeof ymaps)||('undefined' == typeof ymaps.Map) || ('undefined' == typeof YMaps)) {
 		mapDiv.innerHTML = $$$Text('Unable to load ya map api.');
 		return;
 	}
@@ -927,9 +927,22 @@ Callback for geocoder API.</Description>
 ]]></Implementation>
 </Method>
 
+<UDLText name="T">
+<Content><![CDATA[
+/*ClientMethod removePolygon(polygon) [ Language = javascript ]
+{
+	try {
+		if (polygon.tooltip) polygon.tooltip.setMap(null);
+		polygon.setMap(null);
+	}
+	catch(ex) {
+		//  error!
+	}
+}*/
+]]></Content>
+</UDLText>
+
 <Method name="clearPolygons">
-<Description>
-Internal method: clear polygons from map.</Description>
 <Internal>1</Internal>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
@@ -937,12 +950,12 @@ Internal method: clear polygons from map.</Description>
 	console.log('clearPolygons()');
 	//------------------------------
 	
-	
+	//myMap.geoObjects.remove(poligon);
 	try {
 		// kill old polygons
 		if (this._polygons) {
 			for (var n = 0; n < this._polygons.length; n++) {
-				this.removePolygon(this._polygons[n]);
+				this._mapObject.geoObjects.remove(this._polygons[n]);
 			}
 		}
 		this._polygons = [];
@@ -954,8 +967,11 @@ Internal method: clear polygons from map.</Description>
 </Method>
 
 <Method name="getColor">
-<Description>
-Calculate color for polygon</Description>
+<Description><![CDATA[
+Remove a polygon from the map.
+<var>polygon</var> is the polygon to remove.
+Internal method: clear polygons from map.
+Calculate color for polygon]]></Description>
 <FormalSpec>min,max,value</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
@@ -983,6 +999,8 @@ Calculate color for polygon</Description>
 </Method>
 
 <Method name="addPolygon">
+<Description>
+'</Description>
 <FormalSpec>id,coords,color,fo,isClickable,title,data</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
@@ -990,161 +1008,176 @@ Calculate color for polygon</Description>
 	console.log('addPolygon(id, coords, color, fo, isClickable, title, data)');
 	//------------------------------
 	
-	
 	var polygon = null;
 	var map = this.getMapObject();
-	if (map) 
-	{
-		if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1)
-		{
-			var colorAr = color.substring(4, color.length - 1).split(",");
-			color = "rgb(" + String(parseFloat(colorAr[0])).split(".")[0] + "," + String(parseFloat(colorAr[1])).split(".")[0] + "," + String(parseFloat(colorAr[2])).split(".")[0] + ")";
-		}
-		///стиль полигона
-		var style = new YMaps.Style("default#greenPoint");
-        style.polygonStyle = new YMaps.PolygonStyle();
-        style.polygonStyle.fill = 1;
-        style.polygonStyle.outline = 1;
-        style.polygonStyle.strokeWidth = (this.strokeWeight ? this.strokeWeight : 3);
-        style.polygonStyle.strokeColor = (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color);
-        style.polygonStyle.fillColor = (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color);
-        YMaps.Styles.add("polygon#Example", style);
-		
-		polygon = new YMaps.Polygon(coords,{
-    style: "polygon#Example",
-    hasHint: 1,
-    hasBalloon: 1
-});
-
-polygon.name = "";
-polygon.description = title;
-			
-		// add to list
-		polygon._id = id;
-		var index = this._polygons.length;
-		this._polygons[index] = polygon;
-
-		var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
-		YMaps.Events.observe(polygon, polygon.Events.Click, code);
-
-		code = new Function('event', 'zenPage.getComponent('+this.index+').polygonRightClickHandler("'+index+'", event);');
-		YMaps.Events.observe(polygon, polygon.Events.DblClick, code);
-		
-		code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOver("'+index+'", event);');
-		YMaps.Events.observe(polygon, polygon.Events.MouseEnter, code);
-		
-		code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseMove("'+index+'", event);');
-		YMaps.Events.observe(polygon, polygon.Events.MouseMove, code);
-
-		code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOut("'+index+'", event);');
-		YMaps.Events.observe(polygon, polygon.Events.MouseLeave, code);
+	if (!map){
+		return null;
 	}
+
+	if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
+		var colorAr = color.substring(4, color.length - 1).split(",");
+		color = "rgb(" + String(parseFloat(colorAr[0])).split(".")[0] + "," + String(parseFloat(colorAr[1])).split(".")[0] + "," + String(parseFloat(colorAr[2])).split(".")[0] + ")";
+	}
+    polygon =  new ymaps.GeoObject({
+        // Описываем геометрию геообъекта.
+        geometry: {
+            // Тип геометрии - "Многоугольник".
+            type: "Polygon",
+            // Указываем координаты вершин многоугольника.
+            coordinates: coords,
+            // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
+            fillRule: "nonZero"
+        },
+        // Описываем свойства геообъекта.
+        properties:{
+            // Содержимое балуна.
+            balloonContent: "Площадь 4 Население 8"
+        }
+    }, {
+        // Описываем опции геообъекта.
+        // Цвет заливки.
+        fillColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        // Цвет обводки.
+        strokeColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        // Общая прозрачность (как для заливки, так и для обводки).
+        opacity: 0.5,
+        // Ширина обводки.
+        strokeWidth: 5,
+        // Стиль обводки.
+        strokeStyle: 'shortdash',
+        fill: 1,
+        outline : 1,
+        strokeWidth : (this.strokeWeight ? this.strokeWeight : 3),
+     });
+
+	polygon.name = "";
+	polygon.description = title;
+		
+	// add to list
+	polygon._id = id;
+	var index = this._polygons.length;
+	this._polygons[index] = polygon;
+
+	var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
+	polygon.events.add('Click', code);
+
+	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonRightClickHandler("'+index+'", event);');
+	polygon.events.add('DblClick', code);
+	
+	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOver("'+index+'", event);');
+	polygon.events.add('MouseEnter', code);
+	
+	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseMove("'+index+'", event);');
+	polygon.events.add('MouseMove', code);
+
+	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOut("'+index+'", event);');
+	polygon.events.add('MouseLeave', code);
+
 	return polygon;
 ]]></Implementation>
 </Method>
 
 <Method name="syncPolygons">
 <Description><![CDATA[
-Add a polygon to the map at given coordinates.<br/>
+' Add a polygon to the map at given coordinates.<br/>
 <var>id</var> is a user-defined identifier associated with the polygon.<br/>
 Returns the polygon object.
-Internal method: sync polygons to data from controller.*/]]></Description>
+Internal method: sync polygons to data from controller.]]></Description>
 <Internal>1</Internal>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	
-    console.log('syncPolygons');
-    
-    function prototype(upThis)
-    {
-      
+	console.log('syncPolygons');
 
-       // Вызывается при добавления метки на карту 
-      this.onAddToMap = function()
-	  {
-		var div = document.createElement('div');
-		div.appendChild(document.createTextNode(upThis.title_));
-		div.style.border = 'solid 1px #000000';
-		div.style.color = '#000000';
-		div.style.backgroundColor = '#ffffe1';
-		div.style.whiteSpace = 'nowrap';
-		div.style.font = 'icon';
-		if (navigator.userAgent.indexOf("Safari")>=0 || navigator.userAgent.indexOf("Chrome")>=0)
-		{
-			div.style.fontFamily = "Tahoma,sans-serif";
-			div.style.fontSize = "13px";
-		}
-		div.style.MozBoxShadow = '2px 2px 4px #7f7f7f';
-		div.style.boxShadow = '2px 2px 4px #7f7f7f';
-		div.style.padding = '2px 3px'; 
-		div.style.position = 'absolute';
-		div.style.visibility = "hidden";
-		upThis.div_ = div;
+	function prototype(upThis){
 		
-		var panes = upThis.getPanes();
-		panes.floatShadow.appendChild(div);
-	  }
+		// Вызывается при добавления метки на карту 
+		this.onAddToMap = function(){
+			var div = document.createElement('div');
+			div.appendChild(document.createTextNode(upThis.title_));
+			div.style.border = 'solid 1px #000000';
+			div.style.color = '#000000';
+			div.style.backgroundColor = '#ffffe1';
+			div.style.whiteSpace = 'nowrap';
+			div.style.font = 'icon';
+			
+			if (navigator.userAgent.indexOf("Safari")>=0 || navigator.userAgent.indexOf("Chrome")>=0)
+			{
+				div.style.fontFamily = "Tahoma,sans-serif";
+				div.style.fontSize = "13px";
+			}
+			
+			div.style.MozBoxShadow = '2px 2px 4px #7f7f7f';
+			div.style.boxShadow = '2px 2px 4px #7f7f7f';
+			div.style.padding = '2px 3px'; 
+			div.style.position = 'absolute';
+			div.style.visibility = "hidden";
+			upThis.div_ = div;
 
-    // Вызывается при удаление метки с карты
-    this.onRemoveFromMap = function() 
-	{
-		if (upThis.div_) upThis.div_.parentNode.removeChild(upThis.div_);
-		upThis.div_ = null;
-	}
-
-    // Вызывается при обновлении карты
-    this.onMapUpdate =function() {}
-
-    // Метод скрывает div
-    this.hide = function() 
-	{
-		if (upThis.div_) upThis.div_.style.visibility = "hidden";
-	}
-
-    // Показывает div
-      this.show = function(latLng)
-	  {
-		if (upThis.div_) 
-		{
-			var point = upThis.getProjection().fromLatLngToDivPixel(latLng)
-			upThis.div_.style.left = point.x + 'px';
-			upThis.div_.style.top = (point.y - parseInt(upThis.div_.offsetHeight)) + 'px';
-			upThis.div_.style.visibility = "visible";
+			var panes = upThis.getPanes();
+			panes.floatShadow.appendChild(div);
 		}
-	  }
-    }
-	function TooltipOverlay(map, title)
-	{
+
+		// Вызывается при удаление метки с карты
+		this.onRemoveFromMap = function() {
+			if (upThis.div_) upThis.div_.parentNode.removeChild(upThis.div_);
+			upThis.div_ = null;
+		}
+
+		// Вызывается при обновлении карты
+		this.onMapUpdate =function() {}
+
+		// Метод скрывает div
+		this.hide = function() {
+			if (upThis.div_) 
+				upThis.div_.style.visibility = "hidden";
+		}
+
+		// Показывает div
+		this.show = function(latLng){
+			if (upThis.div_) {
+				var point = upThis.getProjection().fromLatLngToDivPixel(latLng)
+				upThis.div_.style.left = point.x + 'px';
+				upThis.div_.style.top = (point.y - parseInt(upThis.div_.offsetHeight)) + 'px';
+				upThis.div_.style.visibility = "visible";
+			}
+		}
+	}
+
+	function TooltipOverlay(map, title){
 		this.map_ = map; 
 		this.div_ = null;
 		this.title_ = title;
-		this.setMap(map);
+		//this.setMap(map);
 	};
+
 	TooltipOverlay.prototype =  new prototype(this);
 
 	var map = this.getMapObject();
-	
+
 	try {
 		var controller = this.getController();
-		if (null == controller) {
+		
+		if (null == controller && !this._polygonData){
 			return;
 		}
-	
+
 		this.clearPolygons();
-        	console.log(this._polygonData);
-		if (this._polygonData) {
-			for (var n = 0; n < this._polygonData.length; n++) {
-				var md = this._polygonData[n];
-				if (md) {
-					var poly = this.addPolygon(n, md.coords, md.color, md.fo, md.isClickable, md.title, md.data);
-					if (poly && map && md.title) poly.tooltip = new TooltipOverlay(map, md.title);
+		
+		console.log(this._polygonData);
+		
+		for (var n = 0; n < this._polygonData.length; n++){
+			var md = this._polygonData[n];
+			if (md){
+				var poly = this.addPolygon(n, md.coords, md.color, md.fo, md.isClickable, md.title, md.data);
+				if (poly && map && md.title){ 
+					poly.tooltip = new TooltipOverlay(map, md.title);
 				}
 			}
 		}
 	}
 	catch(ex) {
-			alert('Error in syncPolygons ' + ex.message);
+		alert('Error in syncPolygons ' + ex.message);
 	}
 ]]></Implementation>
 </Method>
