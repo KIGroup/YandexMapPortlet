@@ -22,7 +22,7 @@ Improvements compared to %DeepSee.Component.Widget.map:
 </Parameter>
 
 <Parameter name="INCLUDEFILES">
-<Default><![CDATA[script:http://api-maps.yandex.ru/2.0/?load=package.full&lang=ru-RU]]></Default>
+<Default><![CDATA[script:http://api-maps.yandex.ru/2.1/?load=package.full&lang=ru-RU]]></Default>
 </Parameter>
 
 <Property name="saveBordersMethod">
@@ -366,7 +366,7 @@ Client-side method to render control.</Description>
 	this.acquireData();
 	
 	// create map
-	this.initMap(mapDiv);
+	ymaps.ready(this.initMap(mapDiv));
 
      // add polygons
 	this.syncPolygons();
@@ -1050,7 +1050,7 @@ Calculate color for polygon]]></Description>
                 // Координаты вершин внешнего контура.
                 [
                     ///[coords.getLat,coords.getLng]
-                   /* [60.3400, 77.5685],
+                    [60.3400, 77.5685],
 					[60.2988, 73.9936],
                     [61.9354, 71.2689],
                     [61.2147, 69.9404],
@@ -1059,7 +1059,7 @@ Calculate color for polygon]]></Description>
 					[59.2709, 72.3574], 
 					[58.9999, 73.7856],
 					[58.9432, 75.4995],
-					[59.2034, 76.9717],*/
+					[59.2034, 76.9717],
 				],
                 
             ],
