@@ -742,12 +742,11 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 					var paths = pathsSets[j].split(" ");
 					for (var i = 0; i < paths.length; i++) {
 						var p = paths[i].split(",");
-					    paths[i] = YMaps.GeoPoint(p[1], p[0], p[2]);
-                      
+					    paths[i] = [p[1], p[0]];
 					}
 					pathsSets[j] = paths;
 				}
-			
+				
 				var data = [];
 			
 				if (this.polygonDataProperties != '')
@@ -1030,39 +1029,23 @@ Calculate color for polygon]]></Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('Here:');
-	console.log(this._polygonCoords);
-      var map = this.getMapObject();
-      if (!map){
+	var map = this.getMapObject();
+    if (!map){
 		return null;
-	  }
-	  if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
+	}
+	
+	if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
 		var colorAr = color.substring(4, color.length - 1).split(",");
 		color = "rgb(" + String(parseFloat(colorAr[0])).split(".")[0] + "," + String(parseFloat(colorAr[1])).split(".")[0] + "," + String(parseFloat(colorAr[2])).split(".")[0] + ")";
-	  }
-      var polygon = new ymaps.GeoObject({
+	}
+   	
+   	var polygon = new ymaps.GeoObject({
         // Описываем геометрию геообъекта.
         geometry: {
             // Тип геометрии - "Многоугольник".
             type: "Polygon",
             // Указываем координаты вершин многоугольника.
-            coordinates: [
-                // Координаты вершин внешнего контура.
-                [
-                    ///[coords.getLat,coords.getLng]
-                   /* [60.3400, 77.5685],
-					[60.2988, 73.9936],
-                    [61.9354, 71.2689],
-                    [61.2147, 69.9404],
-                    [60.2573, 69.8525], 
-					[59.5175, 70.7534],
-					[59.2709, 72.3574], 
-					[58.9999, 73.7856],
-					[58.9432, 75.4995],
-					[59.2034, 76.9717],*/
-				],
-                
-            ],
+            coordinates: coords,
             // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
             fillRule: "nonZero"
         },
@@ -1071,8 +1054,8 @@ Calculate color for polygon]]></Description>
             // Содержимое балуна.
             balloonContent: "Население 67 Площадь 23"
         }
-    }, {
-         // Описываем опции геообъекта.
+    },{
+        // Описываем опции геообъекта.
         // Цвет заливки.
         fillColor: '#0000FF',//(color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
         // Цвет обводки.
@@ -1087,6 +1070,7 @@ Calculate color for polygon]]></Description>
         outline : 1,
         strokeWidth : (this.strokeWeight ? this.strokeWeight : 3),
     });
+    
     polygon.name = "";
 	polygon.description = title;
 		
