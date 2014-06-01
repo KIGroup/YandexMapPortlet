@@ -368,6 +368,9 @@ Client-side method to render control.</Description>
 	// create map
 	this.initMap(mapDiv);
 
+	// add markers
+	this.syncMarkers();
+	
      // add polygons
 	this.syncPolygons();
 ]]></Implementation>
@@ -441,6 +444,7 @@ Notification that the dataController associated with this dataView has raised an
 <Implementation><![CDATA[
 	console.log('notifyViewHandler(reason, data1, data2, data3)');
 	//------------------------------
+	
 	switch(reason) {
 		case 'dataChange':
 			this.onApplyFilters(true);
@@ -449,13 +453,73 @@ Notification that the dataController associated with this dataView has raised an
 		
 			// some change in dataController
 			this.acquireData();
-			
+			this.syncMarkers();
 			this.syncPolygons();
 			break;
 		
 		case 'seriesChange':
 			break;
 	}
+]]></Implementation>
+</Method>
+
+<Method name="addMarker">
+<Description><![CDATA[
+Add a marker to the map at given coordinates.<br/>
+<var>id</var> is a user-defined identifier associated with the marker.<br/>
+Returns the marker object.]]></Description>
+<FormalSpec>id,latitude,longitude,title,isClickable,icon,data</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('addMarker()');
+	//------------------------------
+	var marker = null;
+	var map = this.getMapObject();
+	if (map && !isNaN(parseFloat(latitude)) && !isNaN(parseFloat(longitude))) {
+		/*
+		var mapLatlng = new google.maps.LatLng(parseFloat(latitude), parseFloat(longitude));
+		marker = new google.maps.Marker({
+			position: mapLatlng,
+			map: map,
+			title:title,
+			clickable: (isClickable == 1),
+			icon: (icon ? (this.markerIconSize ? new google.maps.MarkerImage(icon, null, null, null, new google.maps.Size(this.markerIconSize, this.markerIconSize)) : icon) : null),
+			data: data});
+         */
+           var tooltipText="";
+   	        switch (data.ParameterId) {
+	        case "1":
+	          tooltipText=" чел";
+	    	break;
+          	case "2":
+	     	   tooltipText=" кв.км";
+	     	break;
+         	case "3":
+             	tooltipText=" чел/кв.км.";
+      		break;
+      		    
+           	default:
+           	   tooltipText=" ";
+	     	break;
+	        }
+            marker = new ymaps.Placemark([latitude, longitude], {
+            // Чтобы балун и хинт открывались на метке, необходимо задать ей определенные свойства.
+            balloonContentHeader: "",
+           // balloonContentBody: "Содержимое <em>балуна</em> метки",
+            balloonContentFooter: "",
+            hintContent: title + ' (' + data.Value + ')'
+        });
+
+		// add to list
+		marker._id = id;
+		var index = this._markers.length;
+		this._markers[index] = marker;
+
+		//var code = new Function('zenPage.getComponent('+this.index+').markerClickHandler("'+index+'");');
+		//google.maps.event.addListener(marker, 'click', code);
+	}
+	return marker;
 ]]></Implementation>
 </Method>
 
@@ -808,6 +872,41 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 ]]></Implementation>
 </Method>
 
+<Method name="syncMarkers">
+<Description>
+Internal method: sync markers to data from controller.</Description>
+<Internal>1</Internal>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+		console.log('syncMarkers()');
+	//------------------------------
+	try {
+		var controller = this.getController();
+		if (null == controller) {
+			return;
+		}
+	    var map = this.getMapObject();
+		this.clearMarkers();
+       
+		if (this._markerData) {
+			for (var n = 0; n < this._markerData.length; n++) {
+				var md = this._markerData[n];
+				if (md) {
+					var marker = this.addMarker(n,md.latitude,md.longitude,md.title,md.isClickable,md.icon,md.data);
+					if (marker && map && md.title){
+						map.geoObjects.add(marker); 
+					}
+				}
+			}
+		}
+	}
+	catch(ex) {
+		alert('Error in syncMarkers ' + ex.message);
+	}
+]]></Implementation>
+</Method>
+
 <Method name="syncPolygons">
 <Description>
 Internal method: sync polygons to data from controller.</Description>
@@ -952,6 +1051,28 @@ Obtain a reference to a filter (or any other widget control).</Description>
 	//------------------------------
 		
     return zenPage.getComponent(this.parent.parent.controlIndices[ind]);
+]]></Implementation>
+</Method>
+
+<Method name="clearMarkers">
+<Description>
+Internal method: clear markers from map.</Description>
+<Internal>1</Internal>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	try {
+		// kill old markers
+		if (this._markers) {
+			for (var n = 0; n < this._markers.length; n++) {
+				this._mapObject.geoObjects.remove(this._markers[n]);
+			}
+		}
+		this._markers = [];
+	}
+	catch(ex) {
+		alert('Error in clearMarkers ' + ex.message);
+	}
 ]]></Implementation>
 </Method>
 
@@ -1134,7 +1255,9 @@ Callback for geocoder API.</Description>
 <FormalSpec>refresh</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[	zenInvokeCallbackMethod(this.onapplyfilters,this,'onapplyfilters','refresh',refresh);
+<Implementation><![CDATA[
+
+	zenInvokeCallbackMethod(this.onapplyfilters,this,'onapplyfilters','refresh',refresh);
 ]]></Implementation>
 </Method>
 </Class>
