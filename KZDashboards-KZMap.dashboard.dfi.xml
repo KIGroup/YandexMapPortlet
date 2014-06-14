@@ -22,12 +22,50 @@
     <property name="markerSpecialIcon">http://i.imgur.com/bFJRQfv.png</property>
     <property name="markerSpecialProperty">SpecialIcon</property>
     <property name="markerTitleProperty">Name</property>
-    <property name="onclickmarker"></property>
-    <property name="onclickpolygon"></property>
+    <property name="onclickmarker">   
+     
+       map.balloon.open(
+    // Позиция балуна
+    [marker._cdLat,marker._cdLong], {
+      // Свойства балуна:
+      // контент балуна
+      contentBody: "Hello ClickMarker: "
+
+});
+    </property>
+    <property name="onclickpolygon"> 
+       map.balloon.open(
+    // Позиция балуна
+    [marker._cdLat,marker._cdLong], {
+      // Свойства балуна:
+      // контент балуна
+      contentBody: "Hello ClickMarker: "
+
+});
+</property>
     <property name="ondrilldown"></property>
     <property name="ondrillup"></property>
-    <property name="onrightclickmarker"></property>
-    <property name="onrightclickpolygon"></property>
+    <property name="onrightclickmarker">   
+   
+      map.balloon.open(
+    // Позиция балуна
+    [marker._cdLat,marker._cdLong], {
+      // Свойства балуна:
+      // контент балуна
+      contentBody: "Hello RightClickMarker: "
+
+});
+    </property>
+    <property name="onrightclickpolygon">  
+      map.balloon.open(
+    // Позиция балуна
+    [marker._cdLat,marker._cdLong], {
+      // Свойства балуна:
+      // контент балуна
+      contentBody: "Hello RightClickMarker: "
+
+});
+    </property>
     <property name="polygonDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,DataUrl,ParameterId,Level,CenterName</property>
     <property name="polygonTitleProperty">Name</property>
     <property name="saveBordersMethod"></property>
