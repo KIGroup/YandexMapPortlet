@@ -579,8 +579,8 @@ Returns the polygon object.]]></Description>
 	var index = this._polygons.length;
 	this._polygons[index] = polygon;
 	
-	var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
-	polygon.events.add("click",code);
+	var code = new Function('event', 'alert("hello"); console.log(event); console.log(event.get("coordPosition"))');
+	polygon.events.add("click", code);
 	
 	//var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
 	//polygon.events.add("click",code);
