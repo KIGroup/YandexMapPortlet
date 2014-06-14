@@ -408,13 +408,14 @@ Initialize the map</Description>
       		center: [0, 0],
         	type: "yandex#map",
         	zoom: 3,
-        	behaviors:['default', 'scrollZoom']
+        //	behaviors:['default', 'scrollZoom']
             });
             
-    this._mapObject.options.set('scrollZoomSpeed', 1.5);
-    	
+   // this._mapObject.options.set('scrollZoomSpeed', 1.5);
+   //this._mapObject.enableScrollZoom({smooth:false});
+    	this._mapObject.behaviors.enable('scrollZoom',{smooth:false});
     this._mapObject.controls
-            .add('zoomControl');
+            .add('zoomControl',{smooth: false});
 		
 	// array of markers
 	this._markers = [];
@@ -579,11 +580,11 @@ Returns the polygon object.]]></Description>
 	var index = this._polygons.length;
 	this._polygons[index] = polygon;
 	
-	var code = new Function('event', 'alert("hello"); console.log(event); console.log(event.get("coordPosition"))');
-	polygon.events.add("click", code);
+	//var code = new Function('event', 'alert("hello"); console.log(event); console.log(event.get("coordPosition"))');
+	//polygon.events.add("click", code);
 	
-	//var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
-	//polygon.events.add("click",code);
+	var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
+	polygon.events.add("click",code);
 	
 	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonRightClickHandler("'+index+'", event);');
 	polygon.events.add("contextmenu",code);
@@ -642,7 +643,7 @@ Returns the polygon object.]]></Description>
 	if (map) {
 		var marker = this.getMarker(index);
 		if (marker) {
-			zenInvokeCallbackMethod(this.onclickmarker,this,'onclickmarker','map',map,'marker',marker);
+			zenInvokeCallbackMethod(this.onclickmarker,this,'onclickmarker','marker',marker);
 		}
 	}
 ]]></Implementation>
@@ -662,7 +663,7 @@ Returns the polygon object.]]></Description>
 	if (map) {
 		var marker = this.getMarker(index);
 		if (marker) {
-			zenInvokeCallbackMethod(this.onrightclickmarker,this,'onrightclickmarker','map',map,'marker',marker);
+			zenInvokeCallbackMethod(this.onrightclickmarker,this,'onrightclickmarker','marker',marker);
 		}
 	}
 ]]></Implementation>
@@ -670,7 +671,7 @@ Returns the polygon object.]]></Description>
 
 <Method name="polygonClickHandler">
 <Internal>1</Internal>
-<FormalSpec>index</FormalSpec>
+<FormalSpec>index,event</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
@@ -682,7 +683,7 @@ Returns the polygon object.]]></Description>
 	if (map) {
 		var polygon = this.getPolygon(index);
 		if (polygon) {
-			zenInvokeCallbackMethod(this.onclickpolygon,this,'onclickpolygon','map',map,'polygon',polygon);
+			zenInvokeCallbackMethod(this.onclickpolygon,this,'onclickpolygon','position', event.get('coordPosition'));
 		}
 	}
 ]]></Implementation>
@@ -690,7 +691,7 @@ Returns the polygon object.]]></Description>
 
 <Method name="polygonRightClickHandler">
 <Internal>1</Internal>
-<FormalSpec>index</FormalSpec>
+<FormalSpec>index,event</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
@@ -702,7 +703,7 @@ Returns the polygon object.]]></Description>
 	if (map) {
 		var polygon = this.getPolygon(index);
 		if (polygon) {
-			zenInvokeCallbackMethod(this.onrightclickpolygon,this,'onrightclickpolygon','map',map,'polygon',polygon);
+			zenInvokeCallbackMethod(this.onrightclickpolygon,this,'onrightclickpolygon','map',map,'position',event.get('coordPosition'));
 		}
 	}
 ]]></Implementation>
@@ -1143,6 +1144,32 @@ Obtain a reference to a filter (or any other widget control).</Description>
 ]]></Implementation>
 </Method>
 
+<Method name="openInfoWindowAtPosition">
+<Description>
+Show an info window at the specified position.</Description>
+<FormalSpec>position,content</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('openInfoWindowAtPosition(position, content)');
+	//------------------------------
+	
+	
+	var map = this.getMapObject();
+	if (map && position) 
+	{
+		 map.balloon.open(
+        // Позиция балуна
+        position, {
+        // Свойства балуна:
+        // контент балуна
+        contentBody: content
+
+});
+	}
+]]></Implementation>
+</Method>
+
 <Method name="clearMarkers">
 <Description>
 Internal method: clear markers from map.</Description>
@@ -1346,7 +1373,7 @@ Callback for geocoder API.</Description>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
 
-	zenInvokeCallbackMethod(this.onapplyfilters,this,'onapplyfilters','refresh',refresh,'refresh',refresh);
+	zenInvokeCallbackMethod(this.onapplyfilters,this,'onapplyfilters','refresh',refresh);
 ]]></Implementation>
 </Method>
 </Class>

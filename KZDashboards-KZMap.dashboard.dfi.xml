@@ -24,47 +24,20 @@
     <property name="markerTitleProperty">Name</property>
     <property name="onclickmarker">   
      
-       map.balloon.open(
-    // Позиция балуна
-    [marker._cdLat,marker._cdLong], {
-      // Свойства балуна:
-      // контент балуна
-      contentBody: "Hello ClickMarker: "
-
-});
+      position=[marker._cdLat,marker._cdLong];
+      zenThis.openInfoWindowAtPosition(position, "LeftMarkerClick");
     </property>
     <property name="onclickpolygon"> 
-       map.balloon.open(
-    // Позиция балуна
-    [marker._cdLat,marker._cdLong], {
-      // Свойства балуна:
-      // контент балуна
-      contentBody: "Hello ClickMarker: "
-
-});
+      zenThis.openInfoWindowAtPosition(position, "LeftPolygonClick");
 </property>
     <property name="ondrilldown"></property>
     <property name="ondrillup"></property>
-    <property name="onrightclickmarker">   
-   
-      map.balloon.open(
-    // Позиция балуна
-    [marker._cdLat,marker._cdLong], {
-      // Свойства балуна:
-      // контент балуна
-      contentBody: "Hello RightClickMarker: "
-
-});
+    <property name="onrightclickmarker">  
+      position=[marker._cdLat,marker._cdLong];
+      zenThis.openInfoWindowAtPosition(position, "RightMarkerClick");
     </property>
     <property name="onrightclickpolygon">  
-      map.balloon.open(
-    // Позиция балуна
-    [marker._cdLat,marker._cdLong], {
-      // Свойства балуна:
-      // контент балуна
-      contentBody: "Hello RightClickMarker: "
-
-});
+      zenThis.openInfoWindowAtPosition(position, "RightPolygonClick");
     </property>
     <property name="polygonDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,DataUrl,ParameterId,Level,CenterName</property>
     <property name="polygonTitleProperty">Name</property>
