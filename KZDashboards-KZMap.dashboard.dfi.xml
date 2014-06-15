@@ -25,19 +25,19 @@
     <property name="onclickmarker">   
      
       position=[marker._cdLat,marker._cdLong];
-      zenThis.openInfoWindowAtPosition(position, "LeftMarkerClick");
+      zenThis.openBallonAtPosition(position, "LeftMarkerClick");
     </property>
     <property name="onclickpolygon"> 
-      zenThis.openInfoWindowAtPosition(position, "LeftPolygonClick");
+      zenThis.openBallonAtPosition(position, "LeftPolygonClick");
 </property>
     <property name="ondrilldown"></property>
     <property name="ondrillup"></property>
     <property name="onrightclickmarker">  
       position=[marker._cdLat,marker._cdLong];
-      zenThis.openInfoWindowAtPosition(position, "RightMarkerClick");
+      zenThis.openBallonAtPosition(position, "RightMarkerClick");
     </property>
     <property name="onrightclickpolygon">  
-      zenThis.openInfoWindowAtPosition(position, "RightPolygonClick");
+      zenThis.openBallonAtPosition(position, "RightPolygonClick");
     </property>
     <property name="polygonDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,DataUrl,ParameterId,Level,CenterName</property>
     <property name="polygonTitleProperty">Name</property>

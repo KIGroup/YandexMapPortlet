@@ -580,9 +580,6 @@ Returns the polygon object.]]></Description>
 	var index = this._polygons.length;
 	this._polygons[index] = polygon;
 	
-	//var code = new Function('event', 'alert("hello"); console.log(event); console.log(event.get("coordPosition"))');
-	//polygon.events.add("click", code);
-	
 	var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
 	polygon.events.add("click",code);
 	
@@ -607,12 +604,7 @@ Returns the polygon object.]]></Description>
 <FormalSpec>index</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	console.log('getMarker(index)');
-	//------------------------------
-	
-	
-	return this._markers ? this._markers[index] : null;
+<Implementation><![CDATA[	return this._markers ? this._markers[index] : null;
 ]]></Implementation>
 </Method>
 
@@ -621,11 +613,7 @@ Returns the polygon object.]]></Description>
 <FormalSpec>index</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	console.log('getPolygon(index)');
-	//------------------------------
-	
-	return this._polygons ? this._polygons[index] : null;
+<Implementation><![CDATA[	return this._polygons ? this._polygons[index] : null;
 ]]></Implementation>
 </Method>
 
@@ -635,15 +623,11 @@ Returns the polygon object.]]></Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('markerClickHandler(index)');
-	//------------------------------
-	console.log(index);
-	
 	var map = this.getMapObject();
 	if (map) {
 		var marker = this.getMarker(index);
 		if (marker) {
-			zenInvokeCallbackMethod(this.onclickmarker,this,'onclickmarker','marker',marker);
+			zenInvokeCallbackMethod(this.onclickmarker,this,'onclickmarker','marker', marker);
 		}
 	}
 ]]></Implementation>
@@ -655,15 +639,11 @@ Returns the polygon object.]]></Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('markerRightClickHandler(index)');
-	//------------------------------
-	console.log(index);
-	
 	var map = this.getMapObject();
 	if (map) {
 		var marker = this.getMarker(index);
 		if (marker) {
-			zenInvokeCallbackMethod(this.onrightclickmarker,this,'onrightclickmarker','marker',marker);
+			zenInvokeCallbackMethod(this.onrightclickmarker,this,'onrightclickmarker','marker', marker);
 		}
 	}
 ]]></Implementation>
@@ -675,10 +655,6 @@ Returns the polygon object.]]></Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('markerClickHandler(index)');
-	//------------------------------
-	console.log(index);
-	
 	var map = this.getMapObject();
 	if (map) {
 		var polygon = this.getPolygon(index);
@@ -695,10 +671,6 @@ Returns the polygon object.]]></Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('markerRightClickHandler(index)');
-	//------------------------------
-	console.log(index);
-	
 	var map = this.getMapObject();
 	if (map) {
 		var polygon = this.getPolygon(index);
@@ -1144,28 +1116,18 @@ Obtain a reference to a filter (or any other widget control).</Description>
 ]]></Implementation>
 </Method>
 
-<Method name="openInfoWindowAtPosition">
+<Method name="openBallonAtPosition">
 <Description>
 Show an info window at the specified position.</Description>
 <FormalSpec>position,content</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('openInfoWindowAtPosition(position, content)');
-	//------------------------------
-	
-	
 	var map = this.getMapObject();
+	
 	if (map && position) 
 	{
-		 map.balloon.open(
-        // Позиция балуна
-        position, {
-        // Свойства балуна:
-        // контент балуна
-        contentBody: content
-
-});
+		map.balloon.open(position, {contentBody: content});
 	}
 ]]></Implementation>
 </Method>
@@ -1199,11 +1161,9 @@ Internal method: clear polygons from map.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('clearPolygons()');
-	//------------------------------
-	
 	try {
 		// kill old polygons
+		var map = this.getMapObject();
 		if (this._polygons) {
 			for (var n = 0; n < this._polygons.length; n++) {
 				this._mapObject.geoObjects.remove(this._polygons[n]);
