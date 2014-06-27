@@ -97,6 +97,7 @@ Return an SQL statement to execute.</Description>
 			}
 		}
 	
+		set ^temp = pSQL
 	}
 	catch(ex){
 		set st = ex.AsStatus()

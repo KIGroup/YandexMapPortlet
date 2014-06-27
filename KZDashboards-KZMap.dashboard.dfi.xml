@@ -27,11 +27,68 @@
       position=[marker._cdLat,marker._cdLong];
       zenThis.openBallonAtPosition(position, "LeftMarkerClick");
     </property>
-    <property name="onclickpolygon"> 
-      zenThis.openBallonAtPosition(position, "LeftPolygonClick");
-</property>
-    <property name="ondrilldown"></property>
-    <property name="ondrillup"></property>
+    <property name="onclickpolygon"><![CDATA[       	
+    	if(!zenThis.lastPolygon){     		
+        	zenThis.lastPolygon = [];
+    	}    	 				  		
+     
+     	zenThis.drillDown(polygon.data.Name, position, polygon.data.DefaultZoom, {Guid: polygon.data.Guid, Level: polygon.data.Level});   		  		
+     
+     	if (zenThis.lastPolygon.length > 0){
+		 	zenThis.lastPolygon[zenThis.lastPolygon.length - 1].options.set('visible', false);
+     	}
+     	
+     	zenThis.currPolygon = new ymaps.Polygon(
+     		polygon.geometry.getCoordinates(), 
+     		{hintContent: polygon.data.Name}, 
+     		{fill: false,
+        	 fillColor: '#00FF0088',
+        	 zIndex: 1,
+        	 strokeWidth: 4,
+        	 strokeOpacity: 0.9
+    		});
+
+     	
+     	zenThis.lastPolygon.push(zenThis.currPolygon);
+     	zenThis.getMapObject().geoObjects.add(zenThis.currPolygon);
+     	
+     ]]></property>
+    <property name="ondrilldown">
+    	console.log("dash ondrilldown");
+    	
+   		if(!zenThis.lastGuid){ 
+    		zenThis.lastGuid = [];
+    		zenThis.lastLevel = [];
+    		zenThis.currGuid = '';
+    		zenThis.currName = '';
+    		zenThis.currLevel = '';
+   		}
+   		
+   		zenThis.lastLevel.push(zenThis.currLevel);  
+   		zenThis.lastGuid.push(zenThis.currGuid);
+   		
+   		zenThis.currLevel = data.Level;
+   		zenThis.currGuid = data.Guid;
+   	
+   		zenPage.dashboardEventHandler(zenThis, 'click', zenThis.currGuid, 'applyFilter', '*', 'ParentGuid');  
+    </property>
+    <property name="ondrillup"><![CDATA[
+    if (zenThis.lastGuid){  
+		zenThis.currGuid = zenThis.lastGuid.pop();
+		zenThis.currLevel = zenThis.lastLevel.pop();
+  		zenThis.currPolygon = zenThis.lastPolygon.pop();
+  			
+		zenPage.dashboardEventHandler(zenThis,'click', zenThis.currGuid, 'applyFilter', '*', 'ParentGuid');          
+	
+	  	if (zenThis.lastPolygon.length > 0){
+		   	zenThis.lastPolygon[zenThis.lastPolygon.length - 1].options.set('visible', true);
+        }
+            
+		if (zenThis.currPolygon){          
+			zenThis.getMapObject().geoObjects.remove(zenThis.currPolygon);
+		}
+	}
+    ]]></property>
     <property name="onrightclickmarker">  
       position=[marker._cdLat,marker._cdLong];
       zenThis.openBallonAtPosition(position, "RightMarkerClick");

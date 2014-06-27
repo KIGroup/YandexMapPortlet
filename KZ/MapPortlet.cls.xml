@@ -21,9 +21,19 @@ Improvements compared to %DeepSee.Component.Widget.map:
 <Default>KZXMLTYPE</Default>
 </Parameter>
 
-<Parameter name="INCLUDEFILES">
-<Default><![CDATA[script:http://api-maps.yandex.ru/2.0/?load=package.full&lang=ru-RU]]></Default>
-</Parameter>
+<UDLText name="T">
+<Content><![CDATA[
+// Parameter INCLUDEFILES = "script:http://api-maps.yandex.ru/2.0/?load=package.full&lang=ru-RU";
+
+]]></Content>
+</UDLText>
+
+<UDLText name="T">
+<Content><![CDATA[
+// Parameter INCLUDEFILES = "script:http://api-maps.yandex.ru/2.1/?load=package.full&lang=ru-RU";
+
+]]></Content>
+</UDLText>
 
 <Property name="saveBordersMethod">
 <Description>
@@ -353,8 +363,24 @@ Client-side method to render control.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-
+	// get data from controller, if present.
+	this.acquireData();
 	
+	var portlet = this;
+	ymaps.ready(function(){
+		portlet.initMap();
+		portlet.syncMarkers();
+		portlet.syncPolygons();
+	});
+]]></Implementation>
+</Method>
+
+<Method name="initMap">
+<Description>
+Initialize the map</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
 	this._mapObject = null;
 	var mapDiv = this.getEnclosingDiv();
 	
@@ -364,64 +390,52 @@ Client-side method to render control.</Description>
 	mapDiv.style.height = "600px";	
 	mapDiv.style.width = "1300px";
 	
-	// get data from controller, if present.
-	this.acquireData();
-	
-	// create map
-	this.initMap(mapDiv);
-
-	// add markers
-	this.syncMarkers();
-	
-     // add polygons
-	this.syncPolygons();
-]]></Implementation>
-</Method>
-
-<Method name="initMap">
-<Description>
-Initialize the map</Description>
-<FormalSpec>mapDiv</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-    console.log('initMap(mapDiv))');
-	//------------------------------
-	
-	if (('undefined' == typeof ymaps)||('undefined' == typeof ymaps.Map) || ('undefined' == typeof YMaps)) {
+ 	if (('undefined' == typeof ymaps) || ('undefined' == typeof ymaps.Map)) {
 		mapDiv.innerHTML = $$$Text('Unable to load ya map api.');
 		return;
 	}
-	
-    var mapTypeId = 'yandex#map';
 	
 	this.zoom = parseInt(this.zoom, 10);
 	if (isNaN(this.zoom)) this.zoom = 0;
 
     var mapOptions = {
-        	center: [42.36, 42.36],
-       		zoom: 2,
-    		type: 'yandex#satellite'
-    		}
-
-	this._mapObject = new ymaps.Map(mapDiv, {
-      		center: [0, 0],
-        	type: "yandex#map",
-        	zoom: 3,
-        //	behaviors:['default', 'scrollZoom']
-            });
-            
-   // this._mapObject.options.set('scrollZoomSpeed', 1.5);
-   //this._mapObject.enableScrollZoom({smooth:false});
-    	this._mapObject.behaviors.enable('scrollZoom',{smooth:false});
-    this._mapObject.controls
-            .add('zoomControl',{smooth: false});
+        		center: [42.36, 52.36],
+       			zoom: 4,
+       			controls: [],
+    			type: 'yandex#map'
+    		};
+    		
+	this._mapObject = new ymaps.Map(mapDiv, mapOptions);
+    
+    this._mapObject.behaviors.enable('scrollZoom',{smooth:false});
+    this._mapObject.controls.add('zoomControl',{smooth: false});
 		
 	// array of markers
 	this._markers = [];
 	
 	// array of polygons
 	this._polygons = [];
+	
+	// drilldown arrays
+	this._prevZoom = [];
+	this._prevCenter = [];
+	this._drillDownTitle = [];
+	
+	
+    
+    var ButtonLayout = ymaps.templateLayoutFactory.createClass(
+         "<div id='" + this.id + "_drillUpActionComponent" + "'></div>"
+    );
+            
+    var button = new ymaps.control.Button({
+            options: {
+                layout: ButtonLayout
+            }
+        });
+            
+    this._mapObject.controls.add(button, {
+        float: "left"
+    });
 ]]></Implementation>
 </Method>
 
@@ -430,11 +444,14 @@ Initialize the map</Description>
 Return the google map API object used by the map view.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	console.log('getMapObject()');
-	//------------------------------
-	
-	return this._mapObject;
+<Implementation><![CDATA[	return this._mapObject;
+]]></Implementation>
+</Method>
+
+<Method name="getDrillUpActionComponent">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	return document.getElementById(this.id + '_drillUpActionComponent');
 ]]></Implementation>
 </Method>
 
@@ -445,9 +462,6 @@ Notification that the dataController associated with this dataView has raised an
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('notifyViewHandler(reason, data1, data2, data3)');
-	//------------------------------
-	
 	switch(reason) {
 		case 'dataChange':
 			this.onApplyFilters(true);
@@ -475,46 +489,31 @@ Returns the marker object.]]></Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('addMarker()');
-	//------------------------------
-	var marker = null;
 	var map = this.getMapObject();
-	if (map && !isNaN(parseFloat(latitude)) && !isNaN(parseFloat(longitude))) {
-		/*
-		var mapLatlng = new google.maps.LatLng(parseFloat(latitude), parseFloat(longitude));
-		marker = new google.maps.Marker({
-			position: mapLatlng,
-			map: map,
-			title:title,
-			clickable: (isClickable == 1),
-			icon: (icon ? (this.markerIconSize ? new google.maps.MarkerImage(icon, null, null, null, new google.maps.Size(this.markerIconSize, this.markerIconSize)) : icon) : null),
-			data: data});
-         */
-           
-   	       
-            marker = new ymaps.Placemark([latitude, longitude], {
-            // Чтобы балун и хинт открывались на метке, необходимо задать ей определенные свойства.
-            balloonContentHeader: "",
-           // balloonContentBody: "Содержимое <em>балуна</em> метки",
-            balloonContentFooter: "",
-            hintContent: title + ' (' + data.Value + ')'
+	if (!map || isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) return null;
+		
+	var marker = new ymaps.Placemark(
+		[latitude, longitude], 
+		{
+			balloonContentHeader: "",
+         	balloonContentFooter: "",
+         	hintContent: title + ' (' + data.Value + ')'
         });
 
-		// add to list
-		marker._id = id;
-	    marker._cdLat=latitude;
-	    marker._cdLong=longitude;
-		//var e=e.get("coords");
-		//marker._coords.get("coords");
-		var index = this._markers.length;
-		this._markers[index] = marker;
-		var code = new Function('zenPage.getComponent('+this.index+').markerClickHandler("'+index+'");');
-		marker.events.add("click",code);
-		code = new Function('zenPage.getComponent('+this.index+').markerRightClickHandler("'+index+'");');
-		marker.events.add("contextmenu",code);
-		//Placemark.events.add('Click', code);
-          //google.maps.event.addListener(marker, 'click', code);
-	}
+	// add to list
+	marker._id = id;
+	marker._cdLat = latitude;
+	marker._cdLong = longitude;
+	
+	var index = this._markers.length;
+	this._markers[index] = marker;
+	
+	var code = new Function('zenPage.getComponent('+this.index+').markerClickHandler("'+index+'");');
+	marker.events.add("click",code);
+	
+	code = new Function('zenPage.getComponent('+this.index+').markerRightClickHandler("'+index+'");');
+	marker.events.add("contextmenu",code);
+	
 	return marker;
 ]]></Implementation>
 </Method>
@@ -528,55 +527,34 @@ Returns the polygon object.]]></Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log(' addPolygon()');
-	//------------------------------
-	
 	var map = this.getMapObject();
-    if (!map){
-		return null;
-	}
-	
+    if (!map) return null;
+
 	if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
 		var colorAr = color.substring(4, color.length - 1).split(",");
 		color = "rgb(" + String(parseFloat(colorAr[0])).split(".")[0] + "," + String(parseFloat(colorAr[1])).split(".")[0] + "," + String(parseFloat(colorAr[2])).split(".")[0] + ")";
 	}
-   	var polygon = new ymaps.GeoObject({
-        // Описываем геометрию геообъекта.
-        geometry: {
-            // Тип геометрии - "Многоугольник".
-            type: "Polygon",
-            // Указываем координаты вершин многоугольника.
-            coordinates: coords,
-            // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
-            fillRule: "nonZero"
-        },
-        // Описываем свойства геообъекта.
-        properties:{
-            // Содержимое балуна.
-            hintContent: title+"("+data.Value+")"
-            
-        },
-        // Описываем опции геообъекта.
-        // Цвет заливки.
-        fillColor: '#0000FF',//(color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
-        // Цвет обводки.
-        strokeColor: '#0000FF',//(color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
-        // Общая прозрачность (как для заливки, так и для обводки).
-        opacity: 0.5,
-        // Ширина обводки.
-        strokeWidth: 5,
-        // Стиль обводки.
-        strokeStyle: 'shortdash',
-        fill: 1,
-        outline : 1,
-        strokeWidth : (this.strokeWeight ? this.strokeWeight : 3),
-    });
-    
+	
+    var polygon = new ymaps.Polygon(
+     		coords, 
+     		{
+	     		hintContent: title + " (" + data.Value + ")"
+	     	}, 
+     		{
+	     		fillColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        	 	fillOpacity: fo,
+        	 	strokeColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        	 	strokeOpacity: (this.strokeOpacity ? this.strokeOpacity : 0.5),
+        	 	strokeWeight: (this.strokeWeight ? this.strokeWeight : 3),
+    		});
+
+    polygon.data = data;
     polygon.name = "";
 	polygon.description = title;
 		
 	// add to list
 	polygon._id = id;
+	
 	var index = this._polygons.length;
 	this._polygons[index] = polygon;
 	
@@ -624,9 +602,9 @@ Returns the polygon object.]]></Description>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
 	var map = this.getMapObject();
-	if (map) {
+	if (map){
 		var marker = this.getMarker(index);
-		if (marker) {
+		if (marker){
 			zenInvokeCallbackMethod(this.onclickmarker,this,'onclickmarker','marker', marker);
 		}
 	}
@@ -640,9 +618,9 @@ Returns the polygon object.]]></Description>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
 	var map = this.getMapObject();
-	if (map) {
+	if (map){
 		var marker = this.getMarker(index);
-		if (marker) {
+		if (marker){
 			zenInvokeCallbackMethod(this.onrightclickmarker,this,'onrightclickmarker','marker', marker);
 		}
 	}
@@ -656,10 +634,10 @@ Returns the polygon object.]]></Description>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
 	var map = this.getMapObject();
-	if (map) {
+	if (map){
 		var polygon = this.getPolygon(index);
-		if (polygon) {
-			zenInvokeCallbackMethod(this.onclickpolygon,this,'onclickpolygon','position', event.get('coordPosition'));
+		if (polygon){
+			zenInvokeCallbackMethod(this.onclickpolygon, this, 'onclickpolygon', 'polygon', polygon, 'position', event.get('coords'));
 		}
 	}
 ]]></Implementation>
@@ -672,9 +650,9 @@ Returns the polygon object.]]></Description>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
 	var map = this.getMapObject();
-	if (map) {
+	if (map){
 		var polygon = this.getPolygon(index);
-		if (polygon) {
+		if (polygon){
 			zenInvokeCallbackMethod(this.onrightclickpolygon,this,'onrightclickpolygon','map',map,'position',event.get('coordPosition'));
 		}
 	}
@@ -689,12 +667,8 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
 		
-	console.log('acquireData()');
-	//------------------------------
-	
-	
 	var controller = this.getController();
-	if (null == controller) {
+	if (null == controller){
 		// try to connect to dataController
 		this.connectToController();
 		controller = this.getController();
@@ -703,14 +677,13 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 	// array of marker data
 	this._markerData = [];
 	
-	if (controller && (this.latitudeProperty != '') && (this.longitudeProperty != ''))
-	{
+	if (controller && (this.latitudeProperty != '') && (this.longitudeProperty != '')){
 		// get data from controller (make sure data is loaded)
 		var dims = controller.getDimensions();
 		
 		// are we connected to a pivot table?
 		var invert = controller.getSelectedRange;
-		if (!invert) {
+		if (!invert){
 			var seriesSize = controller.getDimSize(1);
 			var seriesCount = controller.getDimSize(2);
 			var labelDim = 2;
@@ -721,18 +694,16 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 			var miCol = -1;
 			var specIconCol = -1;
 		}
-		else {
+		else{
 			var seriesSize = controller.getDimSize(2);
 			var seriesCount = controller.getDimSize(1);
 			var labelDim = 1;
 		}
 		
-		if (seriesCount > 0)
-		{
+		if (seriesCount > 0){
 			// find long and lat and title columns
-			if (!invert)
-				for (var p = 0; p < seriesSize; p++) 
-				{
+			if (!invert){
+				for (var p = 0; p < seriesSize; p++){
 					var pname = controller.getPropertyName(p);
 					if (pname == this.latitudeProperty) {
 						latCol = p;
@@ -753,18 +724,17 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 						specIconCol = p;
 					}
 				}
-		
+			}
 			
 			// each series corresponds to a marker
-			if (invert || (latCol >= 0 && longCol >= 0))
-				for (var n = 0; n < seriesCount; n++) 
-				{
+			if (invert || (latCol >= 0 && longCol >= 0)){
+				for (var n = 0; n < seriesCount; n++){
 					var isClickable = 1;
 					var mi = null;
 					var specIcon = 0;
 					var sname = controller.getLabel(n,labelDim);
 
-					if (!invert) {
+					if (!invert){
 						var lat = controller.getData(latCol,n);
 						var long = controller.getData(longCol,n);
 						if (titleCol >= 0) sname = controller.getData(titleCol,n);
@@ -772,7 +742,7 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 						if (miCol >= 0) mi = controller.getData(miCol,n);
 						if (specIconCol >= 0) specIcon = controller.getData(specIconCol,n);
 					}
-					else {
+					else{
 						var lat = controller.getDataByName(this.latitudeProperty,n);
 						var long = controller.getDataByName(this.longitudeProperty,n);
 						if (this.markerTitleProperty != '') sname = controller.getDataByName(this.markerTitleProperty,n);
@@ -781,12 +751,11 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 						if (this.markerSpecialProperty != '') specIcon = controller.getDataByName(this.markerSpecialProperty,n);
 					}
 			
-					if (!isNaN(parseFloat(lat)) && !isNaN(parseFloat(long))) {
+					if (!isNaN(parseFloat(lat)) && !isNaN(parseFloat(long))){
 						var data = [];
-						if (this.markerDataProperties != '')
-						{
+						if (this.markerDataProperties != ''){
 							var props = this.markerDataProperties.split(",");
-							for (var i = 0; i < props.length; i++) {
+							for (var i = 0; i < props.length; i++){
 							    data[props[i]] = controller.getDataByName(props[i],n);
 							}
 						}
@@ -804,26 +773,25 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 						};
 					}
 				}
+			}
 		}
 	}
 	
 	// array of polygon data
 	this._polygonData = [];
 	
-	if (this.coordsJsFile && !this._polygonCoords)
-	{
+	if (this.coordsJsFile && !this._polygonCoords){
 		this._polygonCoords = [];
 		loadCoordinates(this._polygonCoords);
 	}
 	
-	if (controller && (this.coordsProperty != '')) 
-	{
+	if (controller && (this.coordsProperty != '')){
 		// get data from controller (make sure data is loaded)
 		var dims = controller.getDimensions();
 		
 		// are we connected to a pivot table?
 		var invert = controller.getSelectedRange;
-		if (!invert) {
+		if (!invert){
 			var seriesSize = controller.getDimSize(1);
 			var seriesCount = controller.getDimSize(2);
 			var labelDim = 2;
@@ -833,46 +801,44 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 			var foCol = -1;
 			var clickableCol = -1;
 		}
-		else {
+		else{
 			var seriesSize = controller.getDimSize(2);
 			var seriesCount = controller.getDimSize(1);
 			var labelDim = 1;
 		}
 
-		if (seriesCount > 0)
-		{
+		if (seriesCount > 0){
 			// find coords and color columns
-			if (!invert)
-				for (var p = 0; p < seriesSize; p++) 
-				{
+			if (!invert){
+				for (var p = 0; p < seriesSize; p++){
 					var pname = controller.getPropertyName(p);
-					if (pname == this.coordsProperty) {
+					if (pname == this.coordsProperty){
 						coordsCol = p;
 					}
-					if (pname == this.colorProperty) {
+					if (pname == this.colorProperty){
 						colorCol = p;
 					}
-					if (pname == this.fillOpacityProperty) {
+					if (pname == this.fillOpacityProperty){
 						foCol = p;
 					}
-					if (pname == this.isClickableProperty) {
+					if (pname == this.isClickableProperty){
 						clickableCol = p;
 					}					
-					if (pname == this.polygonTitleProperty) {
+					if (pname == this.polygonTitleProperty){
 						titleCol = p;
 					}
 				}
-
+			}
+			
 			// each series corresponds to a poly
-			for (var n = 0; n < seriesCount; n++)
-			{
+			for (var n = 0; n < seriesCount; n++){
 				var color = 'purple';
 				var fo = this.fillOpacity;  // default opacity
 				var isClickable = 1;
 				
 				var sname = controller.getLabel(n,labelDim);
 
-				if (!invert) {
+				if (!invert){
 					if (coordsCol<0) break;
 					var coords = controller.getData(coordsCol,n);
 					if (colorCol >= 0) color = controller.getData(colorCol,n);
@@ -880,7 +846,7 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 					if (clickableCol >= 0) isClickable = controller.getData(clickableCol,n);
 					if (titleCol >= 0) sname = controller.getData(titleCol,n);
 				}
-				else {
+				else{
 					var coords = controller.getDataByName(this.coordsProperty,n);
 					if (this.colorProperty != '') color = controller.getDataByName(this.colorProperty,n);
 					if (this.fillOpacityProperty != '') fo = controller.getDataByName(this.fillOpacityProperty,n);
@@ -895,9 +861,9 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 				if (!coords) continue;
 				
 				var pathsSets = coords.split(";");
-				for (var j = 0; j < pathsSets.length; j++) {
+				for (var j = 0; j < pathsSets.length; j++){
 					var paths = pathsSets[j].split(" ");
-					for (var i = 0; i < paths.length; i++) {
+					for (var i = 0; i < paths.length; i++){
 						var p = paths[i].split(",");
 					    paths[i] = [p[1], p[0]];
 					}
@@ -906,10 +872,9 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 				
 				var data = [];
 			
-				if (this.polygonDataProperties != '')
-				{
+				if (this.polygonDataProperties != ''){
 					var props = this.polygonDataProperties.split(",");
-					for (var i = 0; i < props.length; i++) {
+					for (var i = 0; i < props.length; i++){
 					    data[props[i]] = controller.getDataByName(props[i],n);
 					}
 				}
@@ -922,15 +887,9 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 					isClickable: (!isClickable ? 1 : isClickable),
 					data: data
 				};
-
 			}
 		}
 	}
-
-	console.log("=== this._polygonData ===");
-	console.log(this._polygonData)
-	console.log("=== this._markerData ===");
-	console.log(this._markerData)
 ]]></Implementation>
 </Method>
 
@@ -941,24 +900,21 @@ Internal method: sync markers to data from controller.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-		console.log('syncMarkers()');
-	//------------------------------
 	try {
 		var controller = this.getController();
-		if (null == controller) {
-			return;
-		}
+		if (null == controller) return;
+		
 	    var map = this.getMapObject();
 		this.clearMarkers();
        
-		if (this._markerData) {
-			for (var n = 0; n < this._markerData.length; n++) {
-				var md = this._markerData[n];
-				if (md) {
-					var marker = this.addMarker(n,md.latitude,md.longitude,md.title,md.isClickable,md.icon,md.data);
-					if (marker && map && md.title){
-						map.geoObjects.add(marker); 
-					}
+		if (!map || !this._markerData) return;
+		
+		for (var n = 0; n < this._markerData.length; n++){
+			var md = this._markerData[n];
+			if (md){
+				var marker = this.addMarker(n,md.latitude,md.longitude,md.title,md.isClickable,md.icon,md.data);
+				if (marker && md.title){
+					map.geoObjects.add(marker); 
 				}
 			}
 		}
@@ -976,8 +932,6 @@ Internal method: sync polygons to data from controller.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('syncPolygons');
-
 	function prototype(upThis){
 		
 		// Вызывается при добавления метки на карту 
@@ -1046,17 +1000,15 @@ Internal method: sync polygons to data from controller.</Description>
 	try {
 		var controller = this.getController();
 		
-		if (null == controller && !this._polygonData){
-			return;
-		}
+		if (null == controller || !this._polygonData) return;
 
 		this.clearPolygons();
-		
-		console.log(this._polygonData);
 		
 		for (var n = 0; n < this._polygonData.length; n++){
 			var md = this._polygonData[n];
 			if (md){
+				md.color = 'rgb(123,234,212)';
+
 				var poly = this.addPolygon(n, md.coords, md.color, md.fo, md.isClickable, md.title, md.data);
 			
 				if (poly && map && md.title){ 
@@ -1080,10 +1032,6 @@ Calculate color for polygon</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('getColor(min, max, value)');
-	//------------------------------
-	
-	
 	if (!value) return 'rgb(0,0,0)';
 	
 	// Крайнии границы: красный и зеленый, цвет для середины - желтый
@@ -1256,7 +1204,11 @@ Callback for geocoder API.</Description>
 		set propName = $order(..settings(propName))
 	}
 	
-	&html<<script type="text/javascript">
+	&html<
+	<script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+	
+	
+	<script type="text/javascript">
 	function hsv2rgb(h,s,v) 
 	{
 		// Adapted from http://www.easyrgb.com/math.html
@@ -1334,6 +1286,133 @@ Callback for geocoder API.</Description>
 <Implementation><![CDATA[
 
 	zenInvokeCallbackMethod(this.onapplyfilters,this,'onapplyfilters','refresh',refresh);
+]]></Implementation>
+</Method>
+
+<Method name="drillDown">
+<Description>
+Perform a drilldown</Description>
+<Internal>1</Internal>
+<FormalSpec>title,latLng,zoom,data</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	console.log('portlet drillDown');
+	
+	var map = this.getMapObject();
+	if (!map) return;
+	
+	this._prevZoom.push(map.getZoom());
+	this._prevCenter.push(map.getCenter());
+	
+	map.setZoom(parseInt(zoom));
+	map.setCenter(latLng);
+	
+	this._drillDownTitle.push(title);
+	this.setDrillDownTitle(title);
+	
+	zenInvokeCallbackMethod(this.ondrilldown, this, 'ondrilldown', 'data', data);
+]]></Implementation>
+</Method>
+
+<Method name="setDrillDownTitle">
+<Internal>1</Internal>
+<FormalSpec>title</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var du = this.getDrillUpActionComponent();
+	du.innerHTML = '';
+	
+	if (!title)	return;
+	
+	var divBtn = document.createElement('div');
+	var portlet = this;
+	divBtn.onclick = function(){portlet.drillUp()};
+	divBtn.appendChild(document.createTextNode('<<  ' + 'Назад'));
+	divBtn.style.cursor = 'pointer';
+	divBtn.style.border = 'solid 1px #000000';
+	divBtn.style.color = '#ffffff';
+	divBtn.style.backgroundColor = '#356B8D';
+	divBtn.style.MozBoxShadow = '2px 2px 4px #7f7f7f';
+	divBtn.style.boxShadow = '2px 2px 4px #7f7f7f';
+	divBtn.style.whiteSpace = 'nowrap';
+	divBtn.style.font = 'icon';
+	divBtn.style.padding = '2px 8px'; 
+	divBtn.style.display = 'block';
+	
+	if (navigator.userAgent.indexOf("Safari")>=0 || navigator.userAgent.indexOf("Chrome")>=0){
+		divBtn.style.fontFamily = "Tahoma,sans-serif";
+		divBtn.style.fontSize = "13px";
+	}
+	
+	
+	var divTitle = document.createElement('div');
+	divTitle.appendChild(document.createTextNode(title));
+	divTitle.style.border = 'solid 1px #000000';
+	divTitle.style.color = '#000000';
+	divTitle.style.MozBoxShadow = '2px 2px 4px #7f7f7f';
+	divTitle.style.boxShadow = '2px 2px 4px #7f7f7f';
+	divTitle.style.whiteSpace = 'nowrap';
+	divTitle.style.font = 'icon';
+	divTitle.style.fontWeight = 'bold';
+	divTitle.style.padding = '2px 8px'; 
+	divTitle.style.display = 'block';
+	
+	if (navigator.userAgent.indexOf("MSIE")>=0){
+		divTitle.style.backgroundColor = 'white';
+	}
+	else{
+		divTitle.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+	}
+	
+	if (navigator.userAgent.indexOf("Safari")>=0 || navigator.userAgent.indexOf("Chrome")>=0){
+		divTitle.style.fontFamily = "Tahoma,sans-serif";
+		divTitle.style.fontSize = "13px";
+	}
+	
+	du.style.display = 'flex';
+	du.appendChild(divBtn);
+	du.appendChild(divTitle);
+]]></Implementation>
+</Method>
+
+<Method name="centerChangedHandler">
+<Internal>1</Internal>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	//console.log('test 32');
+	//if (this._drillDownTitle.length > 0) this._drillDownTitle[this._drillDownTitle.length - 1].draw();
+]]></Implementation>
+</Method>
+
+<Method name="drillUp">
+<Description>
+Restores map parameters (center, zoom and "drilldown title") to their state before drilldown was performed</Description>
+<Internal>1</Internal>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var map = this.getMapObject();
+	if (!map) return;
+	
+	if (this._drillDownTitle.length > 0){
+		this._drillDownTitle.pop();
+		this.setDrillDownTitle(this._drillDownTitle[this._drillDownTitle.length - 1]);
+	}
+	
+	if (this._prevZoom.length > 0){
+		map.setZoom(this._prevZoom[this._prevZoom.length - 1]);
+		this._prevZoom.pop();
+	}
+		
+	if (this._prevCenter.length > 0){
+		map.setCenter(this._prevCenter[this._prevCenter.length - 1]);
+		this._prevCenter.pop();
+	}
+	
+	zenInvokeCallbackMethod(this.ondrillup, this, 'ondrillup');
 ]]></Implementation>
 </Method>
 </Class>
