@@ -28,12 +28,9 @@ Improvements compared to %DeepSee.Component.Widget.map:
 ]]></Content>
 </UDLText>
 
-<UDLText name="T">
-<Content><![CDATA[
-// Parameter INCLUDEFILES = "script:http://api-maps.yandex.ru/2.1/?load=package.full&lang=ru-RU";
-
-]]></Content>
-</UDLText>
+<Parameter name="INCLUDEFILES">
+<Default><![CDATA[script:http://api-maps.yandex.ru/2.1/?load=package.full&lang=ru-RU]]></Default>
+</Parameter>
 
 <Property name="saveBordersMethod">
 <Description>
@@ -502,8 +499,7 @@ Returns the marker object.]]></Description>
 
 	// add to list
 	marker._id = id;
-	marker._cdLat = latitude;
-	marker._cdLong = longitude;
+	marker.data = data;
 	
 	var index = this._markers.length;
 	this._markers[index] = marker;
@@ -559,10 +555,10 @@ Returns the polygon object.]]></Description>
 	this._polygons[index] = polygon;
 	
 	var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
-	polygon.events.add("click",code);
+	polygon.events.add("click", code);
 	
 	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonRightClickHandler("'+index+'", event);');
-	polygon.events.add("contextmenu",code);
+	polygon.events.add("contextmenu", code);
 		
 	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOver("'+index+'", event);');
 	polygon.events.add('MouseEnter', code);
@@ -653,7 +649,7 @@ Returns the polygon object.]]></Description>
 	if (map){
 		var polygon = this.getPolygon(index);
 		if (polygon){
-			zenInvokeCallbackMethod(this.onrightclickpolygon,this,'onrightclickpolygon','map',map,'position',event.get('coordPosition'));
+			zenInvokeCallbackMethod(this.onrightclickpolygon, this, 'onrightclickpolygon', 'map', map, 'position', event.get('coords'));
 		}
 	}
 ]]></Implementation>
@@ -900,19 +896,18 @@ Internal method: sync markers to data from controller.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	try {
-		var controller = this.getController();
-		if (null == controller) return;
-		
-	    var map = this.getMapObject();
-		this.clearMarkers();
-       
-		if (!map || !this._markerData) return;
-		
+	this.clearMarkers();
+	
+	var map = this.getMapObject();
+	var controller = this.getController();
+	
+	if (!map || !controller || !this._markerData) return;
+			
+	try {	
 		for (var n = 0; n < this._markerData.length; n++){
 			var md = this._markerData[n];
 			if (md){
-				var marker = this.addMarker(n,md.latitude,md.longitude,md.title,md.isClickable,md.icon,md.data);
+				var marker = this.addMarker(n, md.latitude, md.longitude, md.title, md.isClickable, md.icon, md.data);
 				if (marker && md.title){
 					map.geoObjects.add(marker); 
 				}
@@ -932,90 +927,23 @@ Internal method: sync polygons to data from controller.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	function prototype(upThis){
-		
-		// Вызывается при добавления метки на карту 
-		this.onAddToMap = function(){
-			var div = document.createElement('div');
-			div.appendChild(document.createTextNode(upThis.title_));
-			div.style.border = 'solid 1px #000000';
-			div.style.color = '#000000';
-			div.style.backgroundColor = '#ffffe1';
-			div.style.whiteSpace = 'nowrap';
-			div.style.font = 'icon';
-			
-			if (navigator.userAgent.indexOf("Safari")>=0 || navigator.userAgent.indexOf("Chrome")>=0)
-			{
-				div.style.fontFamily = "Tahoma,sans-serif";
-				div.style.fontSize = "13px";
-			}
-			
-			div.style.MozBoxShadow = '2px 2px 4px #7f7f7f';
-			div.style.boxShadow = '2px 2px 4px #7f7f7f';
-			div.style.padding = '2px 3px'; 
-			div.style.position = 'absolute';
-			div.style.visibility = "hidden";
-			upThis.div_ = div;
-
-			var panes = upThis.getPanes();
-			panes.floatShadow.appendChild(div);
-		}
-
-		// Вызывается при удаление метки с карты
-		this.onRemoveFromMap = function() {
-			if (upThis.div_) upThis.div_.parentNode.removeChild(upThis.div_);
-			upThis.div_ = null;
-		}
-
-		// Вызывается при обновлении карты
-		this.onMapUpdate =function() {}
-
-		// Метод скрывает div
-		this.hide = function() {
-			if (upThis.div_) 
-				upThis.div_.style.visibility = "hidden";
-		}
-
-		// Показывает div
-		this.show = function(latLng){
-			if (upThis.div_) {
-				var point = upThis.getProjection().fromLatLngToDivPixel(latLng)
-				upThis.div_.style.left = point.x + 'px';
-				upThis.div_.style.top = (point.y - parseInt(upThis.div_.offsetHeight)) + 'px';
-				upThis.div_.style.visibility = "visible";
-			}
-		}
-	}
-
-	function TooltipOverlay(map, title){
-		this.map_ = map; 
-		this.div_ = null;
-		this.title_ = title;
-	};
-
-	TooltipOverlay.prototype =  new prototype(this);
-
+	this.clearPolygons();	
+	
 	var map = this.getMapObject();
-
+	var controller = this.getController();
+	
+	if (!map || !controller || !this._polygonData) return;
+	
 	try {
-		var controller = this.getController();
-		
-		if (null == controller || !this._polygonData) return;
-
-		this.clearPolygons();
-		
 		for (var n = 0; n < this._polygonData.length; n++){
 			var md = this._polygonData[n];
 			if (md){
-				md.color = 'rgb(123,234,212)';
+				
 
 				var poly = this.addPolygon(n, md.coords, md.color, md.fo, md.isClickable, md.title, md.data);
-			
-				if (poly && map && md.title){ 
-					poly.tooltip = new TooltipOverlay(map, md.title);
+				if (poly && md.title){ 
 					map.geoObjects.add(poly);
-				}
-				
+				}	
 			}
 		}
 	}
@@ -1073,8 +1001,7 @@ Show an info window at the specified position.</Description>
 <Implementation><![CDATA[
 	var map = this.getMapObject();
 	
-	if (map && position) 
-	{
+	if (map && position){
 		map.balloon.open(position, {contentBody: content});
 	}
 ]]></Implementation>
@@ -1114,7 +1041,7 @@ Internal method: clear polygons from map.</Description>
 		var map = this.getMapObject();
 		if (this._polygons) {
 			for (var n = 0; n < this._polygons.length; n++) {
-				this._mapObject.geoObjects.remove(this._polygons[n]);
+				map.geoObjects.remove(this._polygons[n]);
 			}
 		}
 		this._polygons = [];
@@ -1205,8 +1132,6 @@ Callback for geocoder API.</Description>
 	}
 	
 	&html<
-	<script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
-	
 	
 	<script type="text/javascript">
 	function hsv2rgb(h,s,v) 

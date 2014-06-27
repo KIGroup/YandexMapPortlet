@@ -6,12 +6,12 @@
     <control name="" action="applyFilter" target="*" targetProperty="ParentGuid" location="widget" type="hidden" controlClass="" label="ParentGuid" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen=""></control>
     <control name="" action="applyFilter" target="*" targetProperty="ParameterName" location="widget" type="dropdown" controlClass="" label="Параметр" title="" value="Население" text="" readOnly="false" valueList="" displayList="" activeWhen=""></control>
     <control name="" action="applyFilter" target="" targetProperty="PolygonsMarkers" location="widget" type="dropdown" controlClass="" label="Вариант отображения" title="" value="Polygons" text="" readOnly="false" valueList="" displayList="" activeWhen=""></control>
-    <property name="colorProperty"></property>
+    <property name="colorProperty">Color</property>
     <property name="coordsJsFile">polygonsKZ.js</property>
     <property name="coordsProperty">Guid</property>
     <property name="fillOpacity">0.6</property>
     <property name="getAdditionInfoForObjectById"></property>
-    <property name="getBordersMethod">KZ.Borders;GetBorders</property>
+    <property name="getBordersMethod"></property>
     <property name="hoverOpacity">0.4</property>
     <property name="latitude">49</property>
     <property name="latitudeProperty">Latitude</property>
@@ -22,11 +22,14 @@
     <property name="markerSpecialIcon">http://i.imgur.com/bFJRQfv.png</property>
     <property name="markerSpecialProperty">SpecialIcon</property>
     <property name="markerTitleProperty">Name</property>
-    <property name="onclickmarker">   
-     
-      position=[marker._cdLat,marker._cdLong];
-      zenThis.openBallonAtPosition(position, "LeftMarkerClick");
-    </property>
+    <property name="onclickmarker"><![CDATA[   
+    	var content = "<div style='font-family: arial; font-size: 12px;'>" + 
+    						"<b>" + marker.data.Name + "</b><br>" + 
+    						"<i>onclickmarker</i>" + 
+    				  "</div>";
+    				  	
+      	zenThis.openBallonAtPosition(marker.geometry.getCoordinates(), content);
+    ]]></property>
     <property name="onclickpolygon"><![CDATA[       	
     	if(!zenThis.lastPolygon){     		
         	zenThis.lastPolygon = [];
@@ -89,14 +92,19 @@
 		}
 	}
     ]]></property>
-    <property name="onrightclickmarker">  
-      position=[marker._cdLat,marker._cdLong];
-      zenThis.openBallonAtPosition(position, "RightMarkerClick");
-    </property>
-    <property name="onrightclickpolygon">  
-      zenThis.openBallonAtPosition(position, "RightPolygonClick");
-    </property>
-    <property name="polygonDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,DataUrl,ParameterId,Level,CenterName</property>
+    <property name="onrightclickmarker"><![CDATA[  
+    	var content = "<div style='font-family: arial; font-size: 12px;'>" + 
+    						"<b>" + marker.data.Name + "</b><br>" + 
+    						"<i>onrightclickmarker</i>" + 
+    				  "</div>";
+    				  	
+      	zenThis.openBallonAtPosition(marker.geometry.getCoordinates(), content);
+    ]]></property>
+    <property name="onrightclickpolygon"><![CDATA[  
+      zenThis.openBallonAtPosition(position, '<div><b>RightPolygonClick</b><br><i>polygon</i></div>');
+    
+    ]]></property>
+    <property name="polygonDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,DataUrl,ParameterId,Level,CenterName,Color</property>
     <property name="polygonTitleProperty">Name</property>
     <property name="saveBordersMethod"></property>
     <property name="strokeOpacity">1</property>
