@@ -9,6 +9,7 @@
     <property name="colorProperty">Color</property>
     <property name="coordsJsFile">polygonsKZ.js</property>
     <property name="coordsProperty">Guid</property>
+    <property name="drillUpButtonPosition">top</property>
     <property name="fillOpacity">0.6</property>
     <property name="getAdditionInfoForObjectById"></property>
     <property name="getBordersMethod"></property>
@@ -17,18 +18,14 @@
     <property name="latitudeProperty">Latitude</property>
     <property name="longitude">66</property>
     <property name="longitudeProperty">Longitude</property>
-    <property name="markerDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,ParameterId,Level,CenterName,SpecialIcon</property>
-    <property name="markerIcon">http://i.imgur.com/pBB7MYT.png</property>
-    <property name="markerSpecialIcon">http://i.imgur.com/bFJRQfv.png</property>
-    <property name="markerSpecialProperty">SpecialIcon</property>
-    <property name="markerTitleProperty">Name</property>
-    <property name="onclickmarker"><![CDATA[   
+    <property name="mapType">Дорожная карта:yandex#map</property>
+    <property name="onclickplacemark"><![CDATA[   
     	var content = "<div style='font-family: arial; font-size: 12px;'>" + 
-    						"<b>" + marker.data.Name + "</b><br>" + 
-    						"<i>onclickmarker</i>" + 
+    						"<b>" + placemark.data.Name + "</b><br>" + 
+    						"<i>onclickplacemark</i>" + 
     				  "</div>";
     				  	
-      	zenThis.openBallonAtPosition(marker.geometry.getCoordinates(), content);
+      	zenThis.openBallonAtPosition(placemark.geometry.getCoordinates(), content);
     ]]></property>
     <property name="onclickpolygon"><![CDATA[       	
     	if(!zenThis.lastPolygon){     		
@@ -43,18 +40,19 @@
      	
      	zenThis.currPolygon = new ymaps.Polygon(
      		polygon.geometry.getCoordinates(), 
-     		{hintContent: polygon.data.Name}, 
-     		{fill: false,
-        	 fillColor: '#00FF0088',
-        	 zIndex: 1,
-        	 strokeWidth: 4,
-        	 strokeOpacity: 0.9
+     		{
+	     		hintContent: polygon.data.Name
+	     	}, 
+     		{
+	     		fill: false,
+        	 	zIndex: 1,
+        	 	strokeColor: polygon.options.get('fillColor'),
+        	 	strokeWidth: 4,
+        	 	strokeOpacity: 0.9
     		});
 
-     	
      	zenThis.lastPolygon.push(zenThis.currPolygon);
      	zenThis.getMapObject().geoObjects.add(zenThis.currPolygon);
-     	
      ]]></property>
     <property name="ondrilldown">
     	console.log("dash ondrilldown");
@@ -92,24 +90,29 @@
 		}
 	}
     ]]></property>
-    <property name="onrightclickmarker"><![CDATA[  
+    <property name="onrightclickplacemark"><![CDATA[  
     	var content = "<div style='font-family: arial; font-size: 12px;'>" + 
-    						"<b>" + marker.data.Name + "</b><br>" + 
-    						"<i>onrightclickmarker</i>" + 
+    						"<b>" + placemark.data.Name + "</b><br>" + 
+    						"<i>onrightclickplacemark</i>" + 
     				  "</div>";
     				  	
-      	zenThis.openBallonAtPosition(marker.geometry.getCoordinates(), content);
+      	zenThis.openBallonAtPosition(placemark.geometry.getCoordinates(), content);
     ]]></property>
     <property name="onrightclickpolygon"><![CDATA[  
       zenThis.openBallonAtPosition(position, '<div><b>RightPolygonClick</b><br><i>polygon</i></div>');
     
     ]]></property>
+    <property name="placemarkDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,ParameterId,Level,CenterName,SpecialIcon</property>
+    <property name="placemarkIcon">http://i.imgur.com/pBB7MYT.png</property>
+    <property name="placemarkSpecialIcon">http://i.imgur.com/bFJRQfv.png</property>
+    <property name="placemarkSpecialProperty">SpecialIcon</property>
+    <property name="placemarkTitleProperty">Name</property>
     <property name="polygonDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,DataUrl,ParameterId,Level,CenterName,Color</property>
     <property name="polygonTitleProperty">Name</property>
     <property name="saveBordersMethod"></property>
     <property name="strokeOpacity">1</property>
     <property name="strokeWeight">1</property>
-    <property name="zoom">5</property>
+    <property name="zoom">4</property>
   </widget>
 </dashboard>
 </Document></Export>

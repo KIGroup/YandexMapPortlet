@@ -163,7 +163,7 @@ SELECT city.Name,
 	   city.SpecialIcon As SpecialIcon, 
 	   pv.Value As Value, 
 	   pv.Parameter As ParameterId,
-	   'rgb(' || round(255 / ($LENGTH(reg.Name)*0.1), 0) || ',' || round(255 / ($LENGTH(reg.Name)*0.1 + reg.DefaultZoom), 0) || ',' || round(255 / ($LENGTH(reg.Name)*0.1), 0) As Color 
+	   null As Color 
 FROM KZ.ParameterValue as pv INNER JOIN
 	 KZ.City as city ON city.ID = pv.Area
 WHERE :WHERECondition

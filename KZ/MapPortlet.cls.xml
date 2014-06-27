@@ -2,100 +2,124 @@
 <Export generator="Cache" version="25">
 <Class name="KZ.MapPortlet">
 <Description>
-checkIt
-Portlet that displays a clickable google map. Supports 2012.2 and higher versions of Cache.
-Improvements compared to %DeepSee.Component.Widget.map:
-1) Polygon support. In addition to markers, this widget supports clickable colored polygons with tooltips.
-   The "coordsProperty" widget setting should be set to the name of a data source property that provides polygon coordinates. The value of this property is expected to contain one or more ordered sequences of coordinates each of which designates a closed loop.
-   Sequences are delimited by ; (semicolon). Coordinates in such a sequence are delimited by spaces, for example: 42.725042,55.257428,0 42.727162,55.270206,0 42.737196,55.27019,0 42.725042,55.257428,0
-   Each coordinate triple consists of latitude / longitude numbers and a noWrap flag (see http://code.google.com/intl/en/apis/maps/documentation/javascript/reference.html#LatLng for details).
-   An alternative approach is to store polygon coordinates in a static js file rather than in the database. See coordsJsFile property description for details.
-2) Configurable names of data source properties that provide marker and polygon data (latitude, longitude, color, opacity etc).
-3) Configurable "onclick" handler for markers and polygons. Configurable "onaddpolygon" and "onaddmarker" handlers.
-4) Drilldown capabilities.
-5) Convenience javascript methods: createInfoWindowAtPosition() and getControl().</Description>
+Description</Description>
 <Super>%DeepSee.Component.Portlet.abstractPortlet</Super>
 <TimeCreated>63223,54909.281803</TimeCreated>
 
-<Parameter name="XMLTYPE">
-<Default>KZXMLTYPE</Default>
-</Parameter>
-
-<UDLText name="T">
-<Content><![CDATA[
-// Parameter INCLUDEFILES = "script:http://api-maps.yandex.ru/2.0/?load=package.full&lang=ru-RU";
-
-]]></Content>
-</UDLText>
-
 <Parameter name="INCLUDEFILES">
+<Description>
+Yandex map API</Description>
 <Default><![CDATA[script:http://api-maps.yandex.ru/2.1/?load=package.full&lang=ru-RU]]></Default>
 </Parameter>
 
-<Property name="saveBordersMethod">
-<Description>
-Method name for save slider range borders</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
-<Property name="getBordersMethod">
-<Description>
-Method name to get slider range borders</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
-<Property name="getAdditionInfoForObjectById">
-<Description>
-Method name to get proxyObject with other info for object</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
 <Property name="latitude">
 <Description>
+
+MAP -------------------------------------------------------------------------------------- MAP
+
 Initial latitude (as a decimal number).</Description>
 <Type>%ZEN.Datatype.float</Type>
-<InitialExpression>42.36</InitialExpression>
+<InitialExpression>60</InitialExpression>
 </Property>
 
 <Property name="longitude">
 <Description>
 Initial longitude (as a decimal number).</Description>
 <Type>%ZEN.Datatype.float</Type>
-<InitialExpression>288.92</InitialExpression>
+<InitialExpression>85</InitialExpression>
 </Property>
 
 <Property name="zoom">
 <Description>
 Initial zoom level (0 shows entire globe).</Description>
 <Type>%ZEN.Datatype.integer</Type>
-<InitialExpression>12</InitialExpression>
+<InitialExpression>2</InitialExpression>
 </Property>
 
 <Property name="mapType">
 <Description>
 Initial map display.</Description>
 <Type>%ZEN.Datatype.string</Type>
-<InitialExpression>"ROADMAP"</InitialExpression>
-<Parameter name="VALUELIST" value=",ROADMAP,SATELLITE,HYBRID,TERRAIN"/>
+<InitialExpression>"yandex#map"</InitialExpression>
+<Parameter name="VALUELIST" value=",yandex#map,yandex#satellite,yandex#hybrid"/>
 </Property>
 
-<Property name="markersDraggable">
+<Property name="onaddplacemark">
 <Description>
-If true, then the markers on this map are draggable.</Description>
-<Type>%ZEN.Datatype.boolean</Type>
-<InitialExpression>0</InitialExpression>
+
+PLACEMARK ------------------------------------------------------------------------------- PLACEMARK
+
+onaddplacemark event handler</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
 <Property name="latitudeProperty">
 <Description>
-Name of property in data source that provides the latitude value for a marker.</Description>
+Name of property in data source that provides the latitude value for a placemark.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
 <Property name="longitudeProperty">
 <Description>
-Name of property in data source that provides the longitude value for a marker.</Description>
+Name of property in data source that provides the longitude value for a placemark.</Description>
 <Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="onclickplacemark">
+<Description>
+onclickplacemark event handler: if defined, this event is fired when a placemark is clicked.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="onrightclickplacemark">
+<Description>
+onrightclickplacemark event handler: if defined, this event is fired when a placemark is clicked.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="placemarkTitleProperty">
+<Description>
+Name of property in data source that provides the title of a placemark (used for tooltip text).</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="placemarkIconProperty">
+<Description>
+Name of property in data source that provides icon href for placemarks.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="placemarkIcon">
+<Description>
+Default placemark icon href.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="placemarkSpecialIcon">
+<Description>
+Special placemark icon href.                                                                     </Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="placemarkSpecialProperty">
+<Description>
+Special placemark property                                                                       </Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="placemarkIconSize">
+<Description>
+Placemark icon size (ignored if both placemarkIcon and placemarkIconProperty are not set).</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="onaddpolygon">
+<Description>
+
+POLYGON --------------------------------------------------------------------------------- POLYGON
+
+onaddpolygon event handler</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
 <Property name="coordsProperty">
@@ -104,22 +128,17 @@ Name of property in data source that provides the coordinates array for a polygo
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
+<Property name="coordsJsFile">
+<Description><![CDATA[
+JS file containing "function loadCoordinates(polygonCoordsArray) {}" that populates a polygon coordinates associative array.
+If <var>coordsJsFile</var> is specified then <var>coordsProperty</var> must contain name of the property that provides keys for the coordinates associative array.]]></Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
 <Property name="colorProperty">
 <Description>
 Name of property in data source that provides the color of a polygon.</Description>
 <Type>%ZEN.Datatype.string</Type>
-</Property>
-
-<Property name="onclickmarker">
-<Description>
-onclickmarker event handler: if defined, this event is fired when a marker is clicked.</Description>
-<Type>%ZEN.Datatype.eventHandler</Type>
-</Property>
-
-<Property name="onrightclickmarker">
-<Description>
-onrightclickmarker event handler: if defined, this event is fired when a marker is clicked.</Description>
-<Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
 <Property name="onclickpolygon">
@@ -134,21 +153,15 @@ onrightclickpolygon event handler: if defined, this event is fired when a polygo
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
-<Property name="markerTitleProperty">
-<Description>
-Name of property in data source that provides the title of a marker (used for tooltip text).</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
 <Property name="polygonTitleProperty">
 <Description>
 Name of property in data source that provides the title of a polygon (used for tooltip text).</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="markerDataProperties">
+<Property name="placemarkDataProperties">
 <Description>
-List of properties in data source that provides data to be stored within the current marker. This data is visible from onclick event handler.</Description>
+List of properties in data source that provides data to be stored within the current placemark. This data is visible from onclick event handler.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
@@ -158,27 +171,15 @@ List of properties in data source that provides data to be stored within the cur
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="ondrilldown">
+<Property name="fillOpacity">
 <Description>
-ondrilldown event handler: if defined, this event is fired from drillDown() method.</Description>
-<Type>%ZEN.Datatype.eventHandler</Type>
-</Property>
-
-<Property name="ondrillup">
-<Description>
-ondrillup event handler: if defined, this event is fired from drillUp() method.</Description>
-<Type>%ZEN.Datatype.eventHandler</Type>
+Default fillOpacity for polygons.</Description>
+<Type>%ZEN.Datatype.string</Type>
 </Property>
 
 <Property name="fillOpacityProperty">
 <Description>
 Name of property in data source that provides polygon fill opacity.</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
-<Property name="isClickableProperty">
-<Description>
-Name of property in data source that provides "сlickable" attribute value for markers and polygons.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
@@ -200,40 +201,37 @@ Polygon stroke weight.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="fillOpacity">
+<Property name="isClickableProperty">
 <Description>
-Default fillOpacity for polygons.</Description>
+Name of property in data source that provides "сlickable" attribute value for placemarks and polygons.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="markerIconProperty">
+<Property name="saveBordersMethod">
 <Description>
-Name of property in data source that provides icon href for markers.</Description>
+Method name for save slider range borders</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="markerIcon">
+<Property name="getBordersMethod">
 <Description>
-Default marker icon href.</Description>
+Method name to get slider range borders</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="markerSpecialIcon">
+<Property name="ondrilldown">
 <Description>
-Special marker icon href.                                                                     [+]</Description>
-<Type>%ZEN.Datatype.string</Type>
+
+COMMON --------------------------------------------------------------------------------- COMMON
+
+ondrilldown event handler: if defined, this event is fired from drillDown() method.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
-<Property name="markerSpecialProperty">
+<Property name="ondrillup">
 <Description>
-Special marker property                                                                       [+]</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
-<Property name="markerIconSize">
-<Description>
-Marker icon size (ignored if both markerIcon and markerIconProperty are not set).</Description>
-<Type>%ZEN.Datatype.string</Type>
+ondrillup event handler: if defined, this event is fired from drillUp() method.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
 <Property name="onapplyfilters">
@@ -242,31 +240,18 @@ onapplyfilters event handler</Description>
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
-<Property name="onaddpolygon">
-<Description>
-onaddpolygon event handler</Description>
-<Type>%ZEN.Datatype.eventHandler</Type>
-</Property>
-
-<Property name="onaddmarker">
-<Description>
-onaddmarker event handler</Description>
-<Type>%ZEN.Datatype.eventHandler</Type>
-</Property>
-
-<Property name="coordsJsFile">
-<Description><![CDATA[
-JS file containing "function loadCoordinates(polygonCoordsArray) {}" that populates a polygon coordinates associative array.
-If <var>coordsJsFile</var> is specified then <var>coordsProperty</var> must contain name of the property that provides keys for the coordinates associative array.]]></Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
 <Property name="drillUpButtonPosition">
 <Description><![CDATA[
 Where "<< Back" button is located]]></Description>
 <Type>%ZEN.Datatype.string</Type>
 <InitialExpression>"top"</InitialExpression>
 <Parameter name="VALUELIST" value="top,bottom"/>
+</Property>
+
+<Property name="getAdditionInfoForObjectById">
+<Description>
+Method name to get proxyObject with other info for object</Description>
+<Type>%ZEN.Datatype.string</Type>
 </Property>
 
 <Method name="%OnGetPortletName">
@@ -291,30 +276,27 @@ Where "<< Back" button is located]]></Description>
 	kill pInfo
 	// $LB(name,value,type,caption,title)
 
-	set tTypeList = "ENUM^"_$$$Text("Roadmap","%DeepSee")_":ROADMAP,"_
-			$$$Text("Satellite","%DeepSee")_":SATELLITE,"_
-			$$$Text("Hybrid","%DeepSee")_":HYBRID,"_
-			$$$Text("Terrain","%DeepSee")_":TERRAIN"
-
+	set tTypeList = "ENUM^"_$$$Text("Roadmap","%DeepSee")_":yandex#map,"_
+			$$$Text("Satellite","%DeepSee")_":yandex#satellite,"_
+			$$$Text("Hybrid","%DeepSee")_":yandex#hybrid"
 	
 	set pInfo($I(pInfo)) = $LB("mapType","",tTypeList,$$$Text("Map Type","%DeepSee"),$$$Text("Initial display type for the map","%DeepSee"))
-	set pInfo($I(pInfo)) = $LB("zoom",12,"%Integer",$$$Text("Zoom","%DeepSee"),$$$Text("Initial zoom level for the map","%DeepSee"))
-	set pInfo($I(pInfo)) = $LB("latitude",55.74,"%Number",$$$Text("Starting latitude","%DeepSee"),$$$Text("Initial latitude for the map","%DeepSee"))
-	set pInfo($I(pInfo)) = $LB("longitude",37.6,"%Number",$$$Text("Starting longitude","%DeepSee"),$$$Text("Initial longitude for the map","%DeepSee"))
+	set pInfo($I(pInfo)) = $LB("zoom",2,"%Integer",$$$Text("Zoom","%DeepSee"),$$$Text("Initial zoom level for the map","%DeepSee"))
+	set pInfo($I(pInfo)) = $LB("latitude",60,"%Number",$$$Text("Starting latitude","%DeepSee"),$$$Text("Initial latitude for the map","%DeepSee"))
+	set pInfo($I(pInfo)) = $LB("longitude",85,"%Number",$$$Text("Starting longitude","%DeepSee"),$$$Text("Initial longitude for the map","%DeepSee"))
 
-	set pInfo($I(pInfo)) = $LB("onclickmarker","","%ZEN.Datatype.eventHandler","'onclickmarker' event handler","User callback for onclickmarker event")
-	set pInfo($I(pInfo)) = $LB("onrightclickmarker","","%ZEN.Datatype.eventHandler","'onrightclickmarker' event handler","User callback for onrightclickmarker event")
-	set pInfo($I(pInfo)) = $LB("markersdraggable",1,"%Boolean","Draggable markers?","Toggle markers drag'n'drop.")
-
-	set pInfo($I(pInfo)) = $LB("latitudeProperty","","%ZEN.Datatype.string","Latitude property","Latitude property for markers")
-	set pInfo($I(pInfo)) = $LB("longitudeProperty","","%ZEN.Datatype.string","Longitude property","Longitude property for markers")
-	set pInfo($I(pInfo)) = $LB("markerTitleProperty","","%ZEN.Datatype.string","Marker title property","Title property for markers")
-	set pInfo($I(pInfo)) = $LB("markerDataProperties","","%ZEN.Datatype.string","Marker data properties","List of data properties for markers")
-	set pInfo($I(pInfo)) = $LB("markerIconProperty","","%ZEN.Datatype.string","Marker icon property","Marker icon property")
-	set pInfo($I(pInfo)) = $LB("markerIcon","","%ZEN.Datatype.string","Marker icon","Default marker icon")
-	set pInfo($I(pInfo)) = $LB("markerSpecialIcon","","%ZEN.Datatype.string","Marker special icon","Marker icon for special place")
-	set pInfo($I(pInfo)) = $LB("markerSpecialProperty","","%ZEN.Datatype.string","Marker special property","Marker special property for special icon")
-	set pInfo($I(pInfo)) = $LB("markerIconSize","","%ZEN.Datatype.string","Marker icon size","Default marker icon size (ingored if Marker icon is not set)")
+	set pInfo($I(pInfo)) = $LB("onclickplacemark","","%ZEN.Datatype.eventHandler","'onclickplacemark' event handler","User callback for onclickplacemark event")
+	set pInfo($I(pInfo)) = $LB("onrightclickplacemark","","%ZEN.Datatype.eventHandler","'onrightclickplacemark' event handler","User callback for onrightclickplacemark event")
+	
+	set pInfo($I(pInfo)) = $LB("latitudeProperty","","%ZEN.Datatype.string","Latitude property","Latitude property for placemarks")
+	set pInfo($I(pInfo)) = $LB("longitudeProperty","","%ZEN.Datatype.string","Longitude property","Longitude property for placemarks")
+	set pInfo($I(pInfo)) = $LB("placemarkTitleProperty","","%ZEN.Datatype.string","Placemark title property","Title property for placemarks")
+	set pInfo($I(pInfo)) = $LB("placemarkDataProperties","","%ZEN.Datatype.string","Placemark data properties","List of data properties for placemarks")
+	set pInfo($I(pInfo)) = $LB("placemarkIconProperty","","%ZEN.Datatype.string","Placemark icon property","Placemark icon property")
+	set pInfo($I(pInfo)) = $LB("placemarkIcon","","%ZEN.Datatype.string","Placemark icon","Default placemark icon")
+	set pInfo($I(pInfo)) = $LB("placemarkSpecialIcon","","%ZEN.Datatype.string","Placemark special icon","Placemark icon for special place")
+	set pInfo($I(pInfo)) = $LB("placemarkSpecialProperty","","%ZEN.Datatype.string","Placemark special property","Placemark special property for special icon")
+	set pInfo($I(pInfo)) = $LB("placemarkIconSize","","%ZEN.Datatype.string","Placemark icon size","Default placemark icon size (ingored if Placemark icon is not set)")
 	
 	set pInfo($I(pInfo)) = $LB("coordsJsFile","","%ZEN.Datatype.string","JS file with coords","JS file with javascript 'function loadCoordinates(polygonCoordsArray) {...}' that populates polygonCoordsArray argument with polygon coordinates keyed by values from the data source property specified in 'Polygon coords property' setting.")
 	set pInfo($I(pInfo)) = $LB("coordsProperty","","%ZEN.Datatype.string","Polygon coords property","Data source property that provides coordinates for polygons if 'JS file with coords' is not specified. Otherwise this setting should contain name of data source property that provides keys for associative array which is populated by javascript code in 'JS file with coords'.")
@@ -341,7 +323,7 @@ Where "<< Back" button is located]]></Description>
 	
 	set pInfo($I(pInfo)) = $LB("onapplyfilters","","%ZEN.Datatype.eventHandler","'onapplyfilters' event handler","User callback for onapplyfilters event")
 	set pInfo($I(pInfo)) = $LB("onaddpolygon","","%ZEN.Datatype.eventHandler","'onaddpolygon' event handler","User callback for onaddpolygon event")
-	set pInfo($I(pInfo)) = $LB("onaddmarker","","%ZEN.Datatype.eventHandler","'onaddmarker' event handler","User callback for onaddmarker event")
+	set pInfo($I(pInfo)) = $LB("onaddplacemark","","%ZEN.Datatype.eventHandler","'onaddplacemark' event handler","User callback for onaddplacemark event")
 	
 
 	//[+]
@@ -366,7 +348,7 @@ Client-side method to render control.</Description>
 	var portlet = this;
 	ymaps.ready(function(){
 		portlet.initMap();
-		portlet.syncMarkers();
+		portlet.syncPlacemarks();
 		portlet.syncPolygons();
 	});
 ]]></Implementation>
@@ -388,27 +370,32 @@ Initialize the map</Description>
 	mapDiv.style.width = "1300px";
 	
  	if (('undefined' == typeof ymaps) || ('undefined' == typeof ymaps.Map)) {
-		mapDiv.innerHTML = $$$Text('Unable to load ya map api.');
+		mapDiv.innerHTML = $$$Text('Unable to load yandex map api.');
 		return;
 	}
 	
+	this.latitude = parseFloat(this.latitude);
+	if (isNaN(this.latitude)) this.latitude = 60;
+	
+	this.longitude = parseFloat(this.longitude);
+	if (isNaN(this.longitude)) this.longitude = 85;
+	
 	this.zoom = parseInt(this.zoom, 10);
-	if (isNaN(this.zoom)) this.zoom = 0;
+	if (isNaN(this.zoom)) this.zoom = 2;
 
     var mapOptions = {
-        		center: [42.36, 52.36],
-       			zoom: 4,
+        		center: [this.latitude, this.longitude],
+       			zoom: this.zoom,
        			controls: [],
-    			type: 'yandex#map'
+    			type: this.mapType ? this.mapType.split(":").pop() : 'yandex#map'
     		};
     		
 	this._mapObject = new ymaps.Map(mapDiv, mapOptions);
-    
-    this._mapObject.behaviors.enable('scrollZoom',{smooth:false});
+    this._mapObject.behaviors.enable('scrollZoom',{smooth: false});
     this._mapObject.controls.add('zoomControl',{smooth: false});
 		
-	// array of markers
-	this._markers = [];
+	// array of placemarks
+	this._placemarks = [];
 	
 	// array of polygons
 	this._polygons = [];
@@ -418,21 +405,19 @@ Initialize the map</Description>
 	this._prevCenter = [];
 	this._drillDownTitle = [];
 	
-	
-    
-    var ButtonLayout = ymaps.templateLayoutFactory.createClass(
-         "<div id='" + this.id + "_drillUpActionComponent" + "'></div>"
-    );
-            
-    var button = new ymaps.control.Button({
+	// create div for dirllUp button
+    var drillUpActionComponent = new ymaps.control.Button({
             options: {
-                layout: ButtonLayout
+                layout: ymaps.templateLayoutFactory.createClass("<div id='" + this.id + "_drillUpActionComponent" + "'></div>")
             }
         });
+        
+    var duPosition = {left: '5px', top: '5px'};
+    if (this.drillUpButtonPosition == "bottom"){
+    	duPosition = {left: '5px', bottom: '5px'};
+    }
             
-    this._mapObject.controls.add(button, {
-        float: "left"
-    });
+    this._mapObject.controls.add(drillUpActionComponent, { float: 'none', position: duPosition });
 ]]></Implementation>
 </Method>
 
@@ -467,7 +452,7 @@ Notification that the dataController associated with this dataView has raised an
 		
 			// some change in dataController
 			this.acquireData();
-			this.syncMarkers();
+			this.syncPlacemarks();
 			this.syncPolygons();
 			break;
 		
@@ -477,11 +462,11 @@ Notification that the dataController associated with this dataView has raised an
 ]]></Implementation>
 </Method>
 
-<Method name="addMarker">
+<Method name="addPlacemark">
 <Description><![CDATA[
-Add a marker to the map at given coordinates.<br/>
-<var>id</var> is a user-defined identifier associated with the marker.<br/>
-Returns the marker object.]]></Description>
+Add a placemark to the map at given coordinates.<br/>
+<var>id</var> is a user-defined identifier associated with the placemark.<br/>
+Returns the placemark object.]]></Description>
 <FormalSpec>id,latitude,longitude,title,isClickable,icon,data</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
@@ -489,7 +474,7 @@ Returns the marker object.]]></Description>
 	var map = this.getMapObject();
 	if (!map || isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) return null;
 		
-	var marker = new ymaps.Placemark(
+	var placemark = new ymaps.Placemark(
 		[latitude, longitude], 
 		{
 			balloonContentHeader: "",
@@ -498,19 +483,19 @@ Returns the marker object.]]></Description>
         });
 
 	// add to list
-	marker._id = id;
-	marker.data = data;
+	placemark._id = id;
+	placemark.data = data;
 	
-	var index = this._markers.length;
-	this._markers[index] = marker;
+	var index = this._placemarks.length;
+	this._placemarks[index] = placemark;
 	
-	var code = new Function('zenPage.getComponent('+this.index+').markerClickHandler("'+index+'");');
-	marker.events.add("click",code);
+	var code = new Function('zenPage.getComponent('+this.index+').placemarkClickHandler("'+index+'");');
+	placemark.events.add("click",code);
 	
-	code = new Function('zenPage.getComponent('+this.index+').markerRightClickHandler("'+index+'");');
-	marker.events.add("contextmenu",code);
+	code = new Function('zenPage.getComponent('+this.index+').placemarkRightClickHandler("'+index+'");');
+	placemark.events.add("contextmenu",code);
 	
-	return marker;
+	return placemark;
 ]]></Implementation>
 </Method>
 
@@ -573,12 +558,12 @@ Returns the polygon object.]]></Description>
 ]]></Implementation>
 </Method>
 
-<Method name="getMarker">
+<Method name="getPlacemark">
 <Internal>1</Internal>
 <FormalSpec>index</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[	return this._markers ? this._markers[index] : null;
+<Implementation><![CDATA[	return this._placemarks ? this._placemarks[index] : null;
 ]]></Implementation>
 </Method>
 
@@ -591,7 +576,7 @@ Returns the polygon object.]]></Description>
 ]]></Implementation>
 </Method>
 
-<Method name="markerClickHandler">
+<Method name="placemarkClickHandler">
 <Internal>1</Internal>
 <FormalSpec>index</FormalSpec>
 <Language>javascript</Language>
@@ -599,15 +584,15 @@ Returns the polygon object.]]></Description>
 <Implementation><![CDATA[
 	var map = this.getMapObject();
 	if (map){
-		var marker = this.getMarker(index);
-		if (marker){
-			zenInvokeCallbackMethod(this.onclickmarker,this,'onclickmarker','marker', marker);
+		var placemark = this.getPlacemark(index);
+		if (placemark){
+			zenInvokeCallbackMethod(this.onclickplacemark,this,'onclickplacemark','placemark', placemark);
 		}
 	}
 ]]></Implementation>
 </Method>
 
-<Method name="markerRightClickHandler">
+<Method name="placemarkRightClickHandler">
 <Internal>1</Internal>
 <FormalSpec>index</FormalSpec>
 <Language>javascript</Language>
@@ -615,9 +600,9 @@ Returns the polygon object.]]></Description>
 <Implementation><![CDATA[
 	var map = this.getMapObject();
 	if (map){
-		var marker = this.getMarker(index);
-		if (marker){
-			zenInvokeCallbackMethod(this.onrightclickmarker,this,'onrightclickmarker','marker', marker);
+		var placemark = this.getPlacemark(index);
+		if (placemark){
+			zenInvokeCallbackMethod(this.onrightclickplacemark,this,'onrightclickplacemark','placemark', placemark);
 		}
 	}
 ]]></Implementation>
@@ -670,8 +655,8 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 		controller = this.getController();
 	}
 
-	// array of marker data
-	this._markerData = [];
+	// array of placemark data
+	this._placemarkData = [];
 	
 	if (controller && (this.latitudeProperty != '') && (this.longitudeProperty != '')){
 		// get data from controller (make sure data is loaded)
@@ -707,22 +692,22 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 					if (pname == this.longitudeProperty) {
 						longCol = p;
 					}
-					if (pname == this.markerTitleProperty) {
+					if (pname == this.placemarkTitleProperty) {
 						titleCol = p;
 					}
 					if (pname == this.isClickableProperty) {
 						clickableCol = p;
 					}
-					if (pname == this.markerIconProperty) {
+					if (pname == this.placemarkIconProperty) {
 						miCol = p;
 					}
-					if (pname == this.markerSpecialProperty) {
+					if (pname == this.placemarkSpecialProperty) {
 						specIconCol = p;
 					}
 				}
 			}
 			
-			// each series corresponds to a marker
+			// each series corresponds to a placemark
 			if (invert || (latCol >= 0 && longCol >= 0)){
 				for (var n = 0; n < seriesCount; n++){
 					var isClickable = 1;
@@ -741,24 +726,24 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 					else{
 						var lat = controller.getDataByName(this.latitudeProperty,n);
 						var long = controller.getDataByName(this.longitudeProperty,n);
-						if (this.markerTitleProperty != '') sname = controller.getDataByName(this.markerTitleProperty,n);
+						if (this.placemarkTitleProperty != '') sname = controller.getDataByName(this.placemarkTitleProperty,n);
 						if (this.isClickableProperty != '') isClickable = controller.getDataByName(this.isClickableProperty,n);
-						if (this.markerIconProperty != '') mi = controller.getDataByName(this.markerIconProperty,n);
-						if (this.markerSpecialProperty != '') specIcon = controller.getDataByName(this.markerSpecialProperty,n);
+						if (this.placemarkIconProperty != '') mi = controller.getDataByName(this.placemarkIconProperty,n);
+						if (this.placemarkSpecialProperty != '') specIcon = controller.getDataByName(this.placemarkSpecialProperty,n);
 					}
 			
 					if (!isNaN(parseFloat(lat)) && !isNaN(parseFloat(long))){
 						var data = [];
-						if (this.markerDataProperties != ''){
-							var props = this.markerDataProperties.split(",");
+						if (this.placemarkDataProperties != ''){
+							var props = this.placemarkDataProperties.split(",");
 							for (var i = 0; i < props.length; i++){
 							    data[props[i]] = controller.getDataByName(props[i],n);
 							}
 						}
 						
-						if (!mi) mi = this.markerIcon;
+						if (!mi) mi = this.placemarkIcon;
 					
-						this._markerData[this._markerData.length] = {
+						this._placemarkData[this._placemarkData.length] = {
 							title: sname,
 							latitude: lat,
 							longitude: long,
@@ -889,33 +874,33 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 ]]></Implementation>
 </Method>
 
-<Method name="syncMarkers">
+<Method name="syncPlacemarks">
 <Description>
-Internal method: sync markers to data from controller.</Description>
+Internal method: sync placemarks to data from controller.</Description>
 <Internal>1</Internal>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	this.clearMarkers();
+	this.clearPlacemarks();
 	
 	var map = this.getMapObject();
 	var controller = this.getController();
 	
-	if (!map || !controller || !this._markerData) return;
+	if (!map || !controller || !this._placemarkData) return;
 			
 	try {	
-		for (var n = 0; n < this._markerData.length; n++){
-			var md = this._markerData[n];
+		for (var n = 0; n < this._placemarkData.length; n++){
+			var md = this._placemarkData[n];
 			if (md){
-				var marker = this.addMarker(n, md.latitude, md.longitude, md.title, md.isClickable, md.icon, md.data);
-				if (marker && md.title){
-					map.geoObjects.add(marker); 
+				var placemark = this.addPlacemark(n, md.latitude, md.longitude, md.title, md.isClickable, md.icon, md.data);
+				if (placemark && md.title){
+					map.geoObjects.add(placemark); 
 				}
 			}
 		}
 	}
 	catch(ex) {
-		alert('Error in syncMarkers ' + ex.message);
+		alert('Error in syncPlacemarks ' + ex.message);
 	}
 ]]></Implementation>
 </Method>
@@ -1007,24 +992,24 @@ Show an info window at the specified position.</Description>
 ]]></Implementation>
 </Method>
 
-<Method name="clearMarkers">
+<Method name="clearPlacemarks">
 <Description>
-Internal method: clear markers from map.</Description>
+Internal method: clear placemarks from map.</Description>
 <Internal>1</Internal>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
 	try {
-		// kill old markers
-		if (this._markers) {
-			for (var n = 0; n < this._markers.length; n++) {
-				this._mapObject.geoObjects.remove(this._markers[n]);
+		// kill old placemarks
+		if (this._placemarks) {
+			for (var n = 0; n < this._placemarks.length; n++) {
+				this._mapObject.geoObjects.remove(this._placemarks[n]);
 			}
 		}
-		this._markers = [];
+		this._placemarks = [];
 	}
 	catch(ex) {
-		alert('Error in clearMarkers ' + ex.message);
+		alert('Error in clearPlacemarks ' + ex.message);
 	}
 ]]></Implementation>
 </Method>
