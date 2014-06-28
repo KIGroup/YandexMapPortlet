@@ -473,13 +473,22 @@ Returns the placemark object.]]></Description>
 <Implementation><![CDATA[
 	var map = this.getMapObject();
 	if (!map || isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) return null;
-		
+
 	var placemark = new ymaps.Placemark(
 		[latitude, longitude], 
 		{
 			balloonContentHeader: "",
          	balloonContentFooter: "",
          	hintContent: title + ' (' + data.Value + ')'
+        },{
+            // Опции.
+            // Необходимо указать данный тип макета.
+            iconLayout: 'default#image',
+            // Своё изображение иконки метки.
+            iconImageHref: icon,
+            // Размеры метки.
+            iconImageSize: (this.placemarkIconSize ? [this.placemarkIconSize, this.placemarkIconSize]: [40,40]),
+           
         });
 
 	// add to list
@@ -760,7 +769,7 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 	
 	// array of polygon data
 	this._polygonData = [];
-	
+	console.log(this._polygonData);
 	if (this.coordsJsFile && !this._polygonCoords){
 		this._polygonCoords = [];
 		loadCoordinates(this._polygonCoords);
@@ -892,6 +901,13 @@ Internal method: sync placemarks to data from controller.</Description>
 		for (var n = 0; n < this._placemarkData.length; n++){
 			var md = this._placemarkData[n];
 			if (md){
+                if(this.placemarkSpecialIcon != "" && md.specialIcon == 1){
+					md.icon = this.placemarkSpecialIcon;
+                }
+                else if(this.placemarkIcon != "" && md.specialIcon == 0){
+					md.icon = this.placemarkIcon;
+                }
+                
 				var placemark = this.addPlacemark(n, md.latitude, md.longitude, md.title, md.isClickable, md.icon, md.data);
 				if (placemark && md.title){
 					map.geoObjects.add(placemark); 
