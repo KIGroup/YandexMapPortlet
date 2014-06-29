@@ -416,8 +416,29 @@ Initialize the map</Description>
     if (this.drillUpButtonPosition == "bottom"){
     	duPosition = {left: '5px', bottom: '5px'};
     }
-            
     this._mapObject.controls.add(drillUpActionComponent, { float: 'none', position: duPosition });
+
+	// create slider range
+    var sliderComponent = new ymaps.control.Button({
+            options: {
+                layout: ymaps.templateLayoutFactory.createClass(""+
+                "<div id='divSlider'>" + 
+        		"    <div id='divSliderButtonsPart'>" +
+        		"        <input id='btnOpenSlider'  type='button' value='Изменить диапазон'  onclick='zenPage.getComponentById(\"" + this.id + "\").openSlider();'/>" +
+        		"        <input id='btnCloseSlider' type='button' value='Сохранить диапазон' onclick='zenPage.getComponentById(\"" + this.id + "\").closeSlider();'/>" + 
+        		"    </div>" + 
+        		"    <div id='divSliderRangesPart'>" + 
+        		"        <input id='inputSliderMinValue' type='text' readonly='true' title='Минимальное значение параметра'/>" +  
+        		"        <input id='inputSliderValues'   type='text' readonly='true' title='Границы диапазона'/>" + 
+        		"        <input id='inputSliderMaxValue' type='text' readonly='true' title='Максимальное значение параметра'/>" + 
+        		"        <div id='slider-range' widgetid=\"" + this.id + "\">" + 
+        		"        </div>" + 
+        		"    </div>" +
+                "</div>")
+            }
+        });
+        
+    this._mapObject.controls.add(sliderComponent, { float: 'right'});
 ]]></Implementation>
 </Method>
 
@@ -474,22 +495,17 @@ Returns the placemark object.]]></Description>
 	var map = this.getMapObject();
 	if (!map || isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) return null;
 
-	var placemark = new ymaps.Placemark(
-		[latitude, longitude], 
-		{
-			balloonContentHeader: "",
-         	balloonContentFooter: "",
-         	hintContent: title + ' (' + data.Value + ')'
-        },{
-            // Опции.
-            // Необходимо указать данный тип макета.
-            iconLayout: 'default#image',
-            // Своё изображение иконки метки.
-            iconImageHref: icon,
-            // Размеры метки.
-            iconImageSize: (this.placemarkIconSize ? [this.placemarkIconSize, this.placemarkIconSize]: [40,40]),
-           
-        });
+	var geometry = [latitude, longitude];
+	var properties = {hintContent: title}
+	var options = {};
+	
+	if (icon){
+		options.iconLayout = 'default#image';
+		options.iconImageHref = icon;
+		options.iconImageSize = this.placemarkIconSize ? [this.placemarkIconSize, this.placemarkIconSize] : [32, 32];
+	}
+	
+	var placemark = new ymaps.Placemark(geometry, properties, options);
 
 	// add to list
 	placemark._id = id;
@@ -526,11 +542,14 @@ Returns the polygon object.]]></Description>
 	}
 	
     var polygon = new ymaps.Polygon(
+     		/* geometry */
      		coords, 
+     		/* properties */
      		{
-	     		hintContent: title + " (" + data.Value + ")"
-	     	}, 
-     		{
+	     		hintContent: title
+	     	},
+	     	/* options */ 
+	     	{
 	     		fillColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
         	 	fillOpacity: fo,
         	 	strokeColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
@@ -538,13 +557,10 @@ Returns the polygon object.]]></Description>
         	 	strokeWeight: (this.strokeWeight ? this.strokeWeight : 3),
     		});
 
-    polygon.data = data;
-    polygon.name = "";
-	polygon.description = title;
-		
-	// add to list
+   	// add to list
 	polygon._id = id;
-	
+	polygon.data = data;
+		
 	var index = this._polygons.length;
 	this._polygons[index] = polygon;
 	
@@ -643,7 +659,7 @@ Returns the polygon object.]]></Description>
 	if (map){
 		var polygon = this.getPolygon(index);
 		if (polygon){
-			zenInvokeCallbackMethod(this.onrightclickpolygon, this, 'onrightclickpolygon', 'map', map, 'position', event.get('coords'));
+			zenInvokeCallbackMethod(this.onrightclickpolygon, this, 'onrightclickpolygon', 'polygon', polygon, 'position', event.get('coords'));
 		}
 	}
 ]]></Implementation>
@@ -904,9 +920,6 @@ Internal method: sync placemarks to data from controller.</Description>
                 if(this.placemarkSpecialIcon != "" && md.specialIcon == 1){
 					md.icon = this.placemarkSpecialIcon;
                 }
-                else if(this.placemarkIcon != "" && md.specialIcon == 0){
-					md.icon = this.placemarkIcon;
-                }
                 
 				var placemark = this.addPlacemark(n, md.latitude, md.longitude, md.title, md.isClickable, md.icon, md.data);
 				if (placemark && md.title){
@@ -936,14 +949,37 @@ Internal method: sync polygons to data from controller.</Description>
 	if (!map || !controller || !this._polygonData) return;
 	
 	try {
+		// Максимальное и минимальное значение из выборки
+		var minMaxData = {min: null, max: null};
+		this.setMinMaxPolygonValue(minMaxData, 'Value');
+	
+		var sliderData = this.getSliderData();
+			
+		if($("#divSliderRangesPart").is(":visible") == false){
+			// Границы для этой выборки и имя у.е. - min;max;y.e
+			var bordersData = this.GetBordersData(this._polygonData[0].data.ParameterId, this._polygonData[0].data.Level, sliderData.getGuid())
+			console.log(bordersData);
+			sliderData.setParameterId(this._polygonData[0].data.ParameterId);
+			sliderData.setLevel(this._polygonData[0].data.Level);
+			sliderData.setMin(minMaxData.min);
+			sliderData.setMax(minMaxData.max);
+			sliderData.setValues(bordersData.minValue, bordersData.maxValue);
+			sliderData.setUnitName(bordersData.unitName);
+			sliderData.resetChanges();			
+		}
+	
 		for (var n = 0; n < this._polygonData.length; n++){
 			var md = this._polygonData[n];
-			if (md){
-				
-
+			if (md){	
+				// Имя полигона + значение для него, значение разбивается по тройкам
+				md.title = md.data.Name + ' (' + this.beatNumber(md.data['Value']) + ' ' + sliderData.getUnitName() + ')';
+				md.color = this.getColor(sliderData.getValues()[0], sliderData.getValues()[1], md.data['Value']);
+					
 				var poly = this.addPolygon(n, md.coords, md.color, md.fo, md.isClickable, md.title, md.data);
-				if (poly && md.title){ 
+				
+				if (poly){ 
 					map.geoObjects.add(poly);
+					zenInvokeCallbackMethod(this.onaddpolygon, this, 'onaddpolygon', 'polygon', poly);
 				}	
 			}
 		}
@@ -966,16 +1002,37 @@ Calculate color for polygon</Description>
 	// Крайнии границы: красный и зеленый, цвет для середины - желтый
 	var middle = (max + min) / 2;
 	
-	if (value <= middle)
-    {
+	if (value <= middle){
         var redPart = (value - min) / (middle - min);
         return "rgb(" + Math.round(255 * redPart) + ",255, 0)";
     }
-    else
-    {
+    else{
         var greenPart = (max - value) / (max - middle);
         return "rgb(255," + Math.round(255 * greenPart) + ", 0)";
     }
+]]></Implementation>
+</Method>
+
+<Method name="setMinMaxPolygonValue">
+<Description>
+Search and set min|max values from all polygons.</Description>
+<FormalSpec>minMaxData,nameValueProperty</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	if (this._polygonData.length == 0 || !nameValueProperty)
+		return;
+	
+	minMaxData.min = parseFloat(this._polygonData[0].data[nameValueProperty]); 
+	minMaxData.max = parseFloat(this._polygonData[0].data[nameValueProperty]);
+	
+	for (var n = 1; n < this._polygonData.length; n++){
+		var value = parseFloat(this._polygonData[n].data[nameValueProperty]);
+		if (minMaxData.min > value)
+			minMaxData.min = value;
+		else if (minMaxData.max < value)
+			minMaxData.max = value;
+	}
 ]]></Implementation>
 </Method>
 
@@ -1135,7 +1192,10 @@ Callback for geocoder API.</Description>
 	&html<
 	
 	<script type="text/javascript">
-	function hsv2rgb(h,s,v) 
+	
+	
+	
+function hsv2rgb(h,s,v) 
 	{
 		// Adapted from http://www.easyrgb.com/math.html
 		// hsv values = 0 - 1, rgb values = 0 - 255
@@ -1201,6 +1261,12 @@ Callback for geocoder API.</Description>
 	{
 		&html<<script type='text/javascript' src='#(..coordsJsFile)#'></script>>
 	}
+	
+	
+	// JQUERY Libraries
+	&html<
+		  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	      <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>>
 ]]></Implementation>
 </Method>
 
@@ -1341,5 +1407,520 @@ Restores map parameters (center, zoom and "drilldown title") to their state befo
 	zenInvokeCallbackMethod(this.ondrillup, this, 'ondrillup');
 ]]></Implementation>
 </Method>
+
+<Method name="getSliderData">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	if (this._sliderData) return this._sliderData;
+	
+	this._sliderData = {
+						setParameterId: function(id){
+							this._parameterId = id;
+						},
+						getParameterId: function(){
+							return this._parameterId;
+						},
+						setGuid: function(guid){
+							this._guid = guid;
+						},
+						getGuid: function(){
+							return this._guid;
+						},
+						setLevel: function(lvl){
+							this._level = lvl;
+						},
+						getLevel: function(){
+							return this._level;
+						},
+						setUnitName: function(name){
+							this._unitName = name ? name : '';
+						},
+						getUnitName: function(){
+							return this._unitName;
+						},
+						setMin: function(value){
+							this._min = Math.floor(value ? parseInt(value) : 0);
+						},
+						getMin: function(){
+							return this._min;
+						},
+						setMax: function(value){
+							this._max = Math.ceil(value ? parseInt(value) : 1000);
+						},
+						getMax: function(){
+							return this._max;
+						},
+						setValues: function(min, max){
+							this._isChanged = true;
+							
+							min = Math.floor(min ? parseInt(min) : 0);
+							min = (min == 0 && this.getMin()) ? this.getMin(): min;
+							
+							max = Math.ceil(max ? parseInt(max) : 0);
+							max = (max == 0 && this.getMax()) ? this.getMax(): max;
+							
+							this._values = [min, max];
+						},
+						getValues: function(){
+							return this._values;
+						},
+						isChanged: function(){
+							return this._isChanged;
+						},
+						resetChanges: function(){
+							this._isChanged = false;
+						},
+						getStep: function(){
+							var step = 1;
+							var range = this.getMax() - this.getMin();
+
+							if (range >= 1e8) step = 100000;
+							else if (range >= 1e7) step = 10000;
+							else if (range >= 1e6) step = 1000;
+							else if (range >= 1e5) step = 100;
+							else if (range >= 1e4) step = 10;
+							this.step = step
+							var modulo = range % step;
+		
+							// Если диапазон не кратен шагу, то распределяем остаток по "бокам" - поровну. 
+							// Если слева уходим в минус, то остаток прибавлем к правой границе.
+							if (modulo != 0){
+								var halfModulo = (step - modulo) / 2;
+			
+								if (this.getMin() < Math.floor(halfModulo)){
+									this.setMax(this.getMax() + Math.ceil(halfModulo) + Math.floor(halfModulo) - this.getMin());
+									this.setMin(0);
+								}
+								else{
+									this.setMin(this.getMin() - Math.floor(halfModulo));
+									this.setMax(this.getMax() + Math.ceil(halfModulo));
+								}
+							}
+
+							return step;
+						}
+					 };
+					 
+	return this._sliderData;
+]]></Implementation>
+</Method>
+
+<Method name="openSlider">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	$("#btnOpenSlider").hide();
+	$("#btnCloseSlider").show();
+	$("#divSliderRangesPart").show();
+
+	// Init slider
+	var portlet = this;
+	var sliderData = this.getSliderData();
+	
+	var step = sliderData.getStep();
+	var unitName = sliderData.getUnitName();
+	var minValue = sliderData.getMin();
+	var maxValue = sliderData.getMax();
+	var values = sliderData.getValues(); 
+
+	$("#slider-range").slider({
+		range: true,
+		step: step,
+		min: minValue,
+		max: maxValue,
+		values: values,
+		stop: function(event, ui){
+			portlet.getSliderData().setValues(ui.values[0], ui.values[1]);
+			portlet.syncPolygons();
+		},
+		slide: function(event, ui){
+			$("#inputSliderValues" ).val(ui.values[0] + " - " + ui.values[1] + " " + unitName);
+		}
+	});
+
+	$("#inputSliderMinValue").val(minValue + " " + unitName);
+	$("#inputSliderMaxValue").val(maxValue + " " + unitName);
+	$("#inputSliderValues").val(values[0] + " - " + values[1] + " " + unitName);
+]]></Implementation>
+</Method>
+
+<Method name="closeSlider">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	$("#btnOpenSlider").show();
+	$("#btnCloseSlider").hide();
+	$("#divSliderRangesPart").hide();
+	
+	var sliderData = this.getSliderData();
+	
+	// Save changes
+	if (sliderData.isChanged()){
+		var res = this.SaveBorders(sliderData.getParameterId(), sliderData.getLevel(), sliderData.getGuid(), sliderData.getValues()[0], sliderData.getValues()[1]);
+		
+		if (res != 1) 
+			alert('Ошибка! Диапазон не сохранен.'+ '\n' + res);
+	}
+]]></Implementation>
+</Method>
+
+<Method name="beatNumber">
+<Description><![CDATA[
+Beat any number on three-digit numbers (123131413.45 => 123 131 413.45)]]></Description>
+<FormalSpec>num</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	if (num == undefined) return '';
+	
+	return num.toString().replace(/(\d)(?=(\d\d\d)+([^\d]|$))/g, '$1 ');
+]]></Implementation>
+</Method>
+
+<Method name="GetAdditionInformationForObjectById">
+<Description>
+Get proxy object with addition information for object by id</Description>
+<FormalSpec>id:%String</FormalSpec>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+	set data = ""
+	
+	try{
+		set data = $CLASSMETHOD($P(..getAdditionInfoForObjectById,";",1),$P(..getAdditionInfoForObjectById,";",2), id)
+	}
+	catch(ex){
+		set data = ##class(%ZEN.proxyObject).%New()
+	}
+	
+	quit data
+]]></Implementation>
+</Method>
+
+<Method name="SaveBorders">
+<Description>
+Save borders for current level, parameter and parent region</Description>
+<FormalSpec>paramId:%String,level:%Integer,regionId:%String,min:%Integer,max:%Integer</FormalSpec>
+<ReturnType>%ZEN.Datatype.string</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+	set data = ##class(%ZEN.proxyObject).%New()
+	set data.parameterId = paramId
+	set data.level = level
+	set data.parentRegionId = regionId
+	set data.minValue = min
+	set data.maxValue = max
+	
+	quit $CLASSMETHOD($P(..saveBordersMethod,";",1),$P(..saveBordersMethod,";",2), data)
+]]></Implementation>
+</Method>
+
+<Method name="GetBordersData">
+<Description>
+Get the minimum and maximum value, and unit name ("min;max;y.e")</Description>
+<FormalSpec>paramId:%String,level:%Integer,regionId:%String</FormalSpec>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+	set bordersData = ""
+	
+	try{
+		set data = ##class(%ZEN.proxyObject).%New()
+		set data.parameterId = paramId
+		set data.level = level
+		set data.parentRegionId = regionId
+	
+		set bordersData = $CLASSMETHOD($P(..getBordersMethod,";",1),$P(..getBordersMethod,";",2), data)
+	}
+	catch(ex){
+		set bordersData = ##class(%ZEN.proxyObject).%New()
+		set bordersData.minValue = 0
+		set bordersData.maxValue = 0
+		set bordersData.unitName = "-"
+	}
+	
+	quit bordersData
+]]></Implementation>
+</Method>
+
+<XData name="Style">
+<Data><![CDATA[
+<style type="text/css">
+/* Custom slider CSS */
+#divSlider{
+	width: 500px;
+}
+
+#btnOpenSlider{
+	display: inline;
+}
+
+#btnCloseSlider{
+	display: none;
+}
+
+#btnOpenSlider, #btnCloseSlider {
+	border: 1px solid rgb(0, 0, 0);
+	color: rgb(255, 255, 255);
+	background-color: rgb(53, 107, 141);
+	box-shadow: rgb(127, 127, 127) 2px 2px 4px;
+	white-space: nowrap;
+	font: icon;
+	font-family: Tahoma, sans-serif;
+	font-size: 13px;
+	padding: 1px 8px;
+	visibility: visible;
+	
+
+}
+
+#divSliderButtonsPart{
+	display: inline;
+	width: 100%;
+	float: right;
+	text-align: right;
+}
+
+#divSliderRangesPart{
+	display: none;
+	background-color: white;
+	border: 1px solid gray;
+	padding: 5px 5px 10px 5px;
+	border-radius: 5px;
+	position: relative;
+	top: 25px;
+}
+
+#slider-range{
+	margin-top: 8px;
+}
+
+#slider-range:hover, .ui-slider-handle:hover, #btnOpenSlider:hover, #btnCloseSlider:hover{
+	cursor: pointer;
+}
+
+#inputSliderMinValue, #inputSliderMaxValue, #inputSliderValues{
+	border: none;
+	padding: 0;
+	margin: 0;
+	width: 33%;
+}
+
+#inputSliderMinValue{
+	text-align: left;
+}
+
+#inputSliderMaxValue{
+	text-align: right;
+	margin-left: -4px;
+}
+
+#inputSliderValues{
+	text-align: center;
+	margin-left: -4px;
+}
+
+
+
+
+
+/* Standart slider CSS */
+.ui-slider {
+	position: relative;
+	text-align: left;
+}
+
+.ui-slider .ui-slider-handle {
+	position: absolute;
+	z-index: 2;
+	width: 1.2em;
+	height: 1.2em;
+	cursor: default;
+}
+
+.ui-slider .ui-slider-range {
+	position: absolute;
+	z-index: 1;
+	font-size: .7em;
+	display: block;
+	border: 0;
+	background-position: 0 0;
+}
+
+/* For IE8 - See #6727 */
+.ui-slider.ui-state-disabled .ui-slider-handle,
+.ui-slider.ui-state-disabled .ui-slider-range {
+	filter: inherit;
+}
+
+.ui-slider-horizontal {
+	height: .8em;
+}
+
+.ui-slider-horizontal .ui-slider-handle {
+	top: -.3em;
+	margin-left: -.6em;
+}
+
+.ui-slider-horizontal .ui-slider-range {
+	top: 0;
+	height: 100%;
+}
+
+.ui-slider-horizontal .ui-slider-range-min {
+	left: 0;
+}
+
+.ui-slider-horizontal .ui-slider-range-max {
+	right: 0;
+}
+
+.ui-widget {
+	font-family: Verdana,Arial,sans-serif;
+	font-size: 1.1em;
+}
+
+.ui-widget .ui-widget {
+	font-size: 1em;
+}
+
+.ui-widget input,
+.ui-widget select,
+.ui-widget textarea,
+.ui-widget button {
+	font-family: Verdana,Arial,sans-serif;
+	font-size: 1em;
+}
+
+.ui-widget-content {
+	border: 1px solid #aaaaaa;
+	background: #ffffff 50% 50% repeat-x;
+	color: #222222;
+}
+
+.ui-widget-content a {
+	color: #222222;
+}
+
+.ui-widget-header {
+	border: 1px solid #aaaaaa;
+	background-color: #cccccc;
+	color: #222222;
+	font-weight: bold;
+}
+
+.ui-widget-header a {
+	color: #222222;
+}
+
+.ui-state-default,
+.ui-widget-content .ui-state-default,
+.ui-widget-header .ui-state-default {
+	border: 1px solid #d3d3d3;
+	background: #e6e6e6 50% 50% repeat-x;
+	font-weight: normal;
+	color: #555555;
+}
+
+.ui-state-default a,
+.ui-state-default a:link,
+.ui-state-default a:visited {
+	color: #555555;
+	text-decoration: none;
+}
+.ui-state-hover,
+.ui-widget-content .ui-state-hover,
+.ui-widget-header .ui-state-hover,
+.ui-state-focus,
+.ui-widget-content .ui-state-focus,
+.ui-widget-header .ui-state-focus {
+	border: 1px solid #999999;
+	background: #dadada 50% 50% repeat-x;
+	font-weight: normal;
+	color: #212121;
+}
+
+.ui-state-hover a,.ui-state-hover a:hover,.ui-state-hover a:link,.ui-state-hover a:visited {
+	color: #212121;
+	text-decoration: none;
+}
+
+.ui-state-active,.ui-widget-content .ui-state-active,.ui-widget-header .ui-state-active {
+	border: 1px solid #aaaaaa;
+	background: #ffffff 50% 50% repeat-x;
+	font-weight: normal;
+	color: #212121;
+}
+
+.ui-state-active a,.ui-state-active a:link,.ui-state-active a:visited {
+	color: #212121;
+	text-decoration: none;
+}
+
+.ui-state-highlight,.ui-widget-content .ui-state-highlight,.ui-widget-header .ui-state-highlight {
+	border: 1px solid #fcefa1;
+	background: #fbf9ee 50% 50% repeat-x;
+	color: #363636;
+}
+
+.ui-state-highlight a,.ui-widget-content .ui-state-highlight a,.ui-widget-header .ui-state-highlight a {
+	color: #363636;
+}
+
+.ui-state-error,.ui-widget-content .ui-state-error,.ui-widget-header .ui-state-error {
+	border: 1px solid #cd0a0a;
+	background: #fef1ec 50% 50% repeat-x;
+	color: #cd0a0a;
+}
+
+.ui-state-error a,.ui-widget-content .ui-state-error a,.ui-widget-header .ui-state-error a {
+	color: #cd0a0a;
+}
+
+.ui-state-error-text,.ui-widget-content .ui-state-error-text,.ui-widget-header .ui-state-error-text {
+	color: #cd0a0a;
+}
+
+.ui-priority-primary,.ui-widget-content .ui-priority-primary,.ui-widget-header .ui-priority-primary {
+	font-weight: bold;
+}
+
+.ui-priority-secondary,.ui-widget-content .ui-priority-secondary,.ui-widget-header .ui-priority-secondary {
+	opacity: .7;
+	filter:Alpha(Opacity=70);
+	font-weight: normal;
+}
+
+.ui-state-disabled,.ui-widget-content .ui-state-disabled,.ui-widget-header .ui-state-disabled {
+	opacity: .35;
+	filter:Alpha(Opacity=35);
+	background-image: none;
+}
+
+.ui-state-disabled .ui-icon {
+	filter:Alpha(Opacity=35); /* For IE8 - See #6059 */
+}
+
+/* Corner radius */
+.ui-corner-all,.ui-corner-top,.ui-corner-left,.ui-corner-tl {
+	border-top-left-radius: 4px;
+}
+
+.ui-corner-all,.ui-corner-top,.ui-corner-right,.ui-corner-tr {
+	border-top-right-radius: 4px;
+}
+
+.ui-corner-all,.ui-corner-bottom,.ui-corner-left,.ui-corner-bl {
+	border-bottom-left-radius: 4px;
+}
+
+.ui-corner-all,.ui-corner-bottom,.ui-corner-right,.ui-corner-br {
+	border-bottom-right-radius: 4px;
+}
+
+</style>
+]]></Data>
+</XData>
 </Class>
 </Export>

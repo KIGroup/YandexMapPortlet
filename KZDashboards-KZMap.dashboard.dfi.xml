@@ -11,8 +11,8 @@
     <property name="coordsProperty">Guid</property>
     <property name="drillUpButtonPosition">top</property>
     <property name="fillOpacity">0.6</property>
-    <property name="getAdditionInfoForObjectById"></property>
-    <property name="getBordersMethod"></property>
+    <property name="getAdditionInfoForObjectById">KZ.ParameterValue;GetParametersData</property>
+    <property name="getBordersMethod">KZ.Borders;GetBorders</property>
     <property name="hoverOpacity">0.4</property>
     <property name="latitude">49</property>
     <property name="latitudeProperty">Latitude</property>
@@ -70,7 +70,8 @@
    		
    		zenThis.currLevel = data.Level;
    		zenThis.currGuid = data.Guid;
-   	
+   		
+   		zenThis.getSliderData().setGuid(data.Guid);
    		zenPage.dashboardEventHandler(zenThis, 'click', zenThis.currGuid, 'applyFilter', '*', 'ParentGuid');  
     </property>
     <property name="ondrillup"><![CDATA[
@@ -78,7 +79,8 @@
 		zenThis.currGuid = zenThis.lastGuid.pop();
 		zenThis.currLevel = zenThis.lastLevel.pop();
   		zenThis.currPolygon = zenThis.lastPolygon.pop();
-  			
+  		
+  		zenThis.getSliderData().setGuid(zenThis.currGuid);	
 		zenPage.dashboardEventHandler(zenThis,'click', zenThis.currGuid, 'applyFilter', '*', 'ParentGuid');          
 	
 	  	if (zenThis.lastPolygon.length > 0){
@@ -98,18 +100,33 @@
     				  	
       	zenThis.openBallonAtPosition(placemark.geometry.getCoordinates(), content);
     ]]></property>
-    <property name="onrightclickpolygon"><![CDATA[  
-      zenThis.openBallonAtPosition(position, '<div><b>RightPolygonClick</b><br><i>polygon</i></div>');
-    
+    <property name="onrightclickpolygon"><![CDATA[
+    	var content = '<div style="font-size: 12px; font-family:arial;"><span style="font-weight: bold;">' + polygon.data.Name + '</span><br>';    
+    	if(polygon.data.Level==0 || polygon.data.Level==1){
+    		content += polygon.data.CenterName ? ('<br>Административный центр: ' + polygon.data.CenterName + '<br>') : '';    		
+    	}
+    	
+    	var otherInfo = zenThis.GetAdditionInformationForObjectById(polygon.data.Guid);
+ 		console.log(otherInfo);
+ 		otherInfo.parameters = otherInfo.parameters.split(';');
+ 		otherInfo.unitNames = otherInfo.unitNames.split(';');
+ 		otherInfo.values = otherInfo.values.split(';');
+ 		
+    	for (var i=0; i < otherInfo.parameters.length-1; i++){
+    		content += '<br>' + otherInfo.parameters[i] + ': ' + zenThis.beatNumber(otherInfo.values[i]) + ' ' + otherInfo.unitNames[i]; 
+    	}
+    	
+    	zenThis.openBallonAtPosition(position, content + '</div>');
     ]]></property>
     <property name="placemarkDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,ParameterId,Level,CenterName,SpecialIcon</property>
     <property name="placemarkIcon">http://i.imgur.com/pBB7MYT.png</property>
+    <property name="placemarkIconSize"></property>
     <property name="placemarkSpecialIcon">http://i.imgur.com/bFJRQfv.png</property>
     <property name="placemarkSpecialProperty">SpecialIcon</property>
     <property name="placemarkTitleProperty">Name</property>
     <property name="polygonDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,DataUrl,ParameterId,Level,CenterName,Color</property>
     <property name="polygonTitleProperty">Name</property>
-    <property name="saveBordersMethod"></property>
+    <property name="saveBordersMethod">KZ.Borders;SaveBorders</property>
     <property name="strokeOpacity">1</property>
     <property name="strokeWeight">1</property>
     <property name="zoom">4</property>
