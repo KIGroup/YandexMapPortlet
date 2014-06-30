@@ -53,18 +53,6 @@ onaddplacemark event handler</Description>
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
-<Property name="latitudeProperty">
-<Description>
-Name of property in data source that provides the latitude value for a placemark.</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
-<Property name="longitudeProperty">
-<Description>
-Name of property in data source that provides the longitude value for a placemark.</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
 <Property name="onclickplacemark">
 <Description>
 onclickplacemark event handler: if defined, this event is fired when a placemark is clicked.</Description>
@@ -77,21 +65,39 @@ onrightclickplacemark event handler: if defined, this event is fired when a plac
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
+<Property name="placemarkDataProperties">
+<Description>
+List of properties in data source that provides data to be stored within the current placemark. This data is visible from onclick event handler.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="latitudeProperty">
+<Description>
+Name of property in data source that provides the latitude value for a placemark.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="longitudeProperty">
+<Description>
+Name of property in data source that provides the longitude value for a placemark.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
 <Property name="placemarkTitleProperty">
 <Description>
 Name of property in data source that provides the title of a placemark (used for tooltip text).</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="placemarkIconProperty">
-<Description>
-Name of property in data source that provides icon href for placemarks.</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
 <Property name="placemarkIcon">
 <Description>
 Default placemark icon href.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="placemarkIconProperty">
+<Description>
+Name of property in data source that provides icon href for placemarks.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
@@ -122,6 +128,18 @@ onaddpolygon event handler</Description>
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
+<Property name="onclickpolygon">
+<Description>
+onclickpolygon event handler: if defined, this event is fired when a polygon is clicked.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
+<Property name="onrightclickpolygon">
+<Description>
+onrightclickpolygon event handler: if defined, this event is fired when a polygon is clicked.</Description>
+<Type>%ZEN.Datatype.eventHandler</Type>
+</Property>
+
 <Property name="coordsProperty">
 <Description>
 Name of property in data source that provides the coordinates array for a polygon.</Description>
@@ -141,27 +159,9 @@ Name of property in data source that provides the color of a polygon.</Descripti
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="onclickpolygon">
-<Description>
-onclickpolygon event handler: if defined, this event is fired when a polygon is clicked.</Description>
-<Type>%ZEN.Datatype.eventHandler</Type>
-</Property>
-
-<Property name="onrightclickpolygon">
-<Description>
-onrightclickpolygon event handler: if defined, this event is fired when a polygon is clicked.</Description>
-<Type>%ZEN.Datatype.eventHandler</Type>
-</Property>
-
 <Property name="polygonTitleProperty">
 <Description>
 Name of property in data source that provides the title of a polygon (used for tooltip text).</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
-<Property name="placemarkDataProperties">
-<Description>
-List of properties in data source that provides data to be stored within the current placemark. This data is visible from onclick event handler.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
@@ -274,7 +274,6 @@ Method name to get proxyObject with other info for object</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	kill pInfo
-	// $LB(name,value,type,caption,title)
 
 	set tTypeList = "ENUM^"_$$$Text("Roadmap","%DeepSee")_":yandex#map,"_
 			$$$Text("Satellite","%DeepSee")_":yandex#satellite,"_
@@ -333,335 +332,6 @@ Method name to get proxyObject with other info for object</Description>
 	
 
 	quit $$$OK
-]]></Implementation>
-</Method>
-
-<Method name="renderContents">
-<Description>
-Client-side method to render control.</Description>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	// get data from controller, if present.
-	this.acquireData();
-	
-	var portlet = this;
-	ymaps.ready(function(){
-		portlet.initMap();
-		portlet.syncPlacemarks();
-		portlet.syncPolygons();
-	});
-]]></Implementation>
-</Method>
-
-<Method name="initMap">
-<Description>
-Initialize the map</Description>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	this._mapObject = null;
-	var mapDiv = this.getEnclosingDiv();
-	
-	// test if we have not been rendered yet
-	if (mapDiv == null) return;
-	
-	mapDiv.style.height = "600px";	
-	mapDiv.style.width = "1300px";
-	
- 	if (('undefined' == typeof ymaps) || ('undefined' == typeof ymaps.Map)) {
-		mapDiv.innerHTML = $$$Text('Unable to load yandex map api.');
-		return;
-	}
-	
-	this.latitude = parseFloat(this.latitude);
-	if (isNaN(this.latitude)) this.latitude = 60;
-	
-	this.longitude = parseFloat(this.longitude);
-	if (isNaN(this.longitude)) this.longitude = 85;
-	
-	this.zoom = parseInt(this.zoom, 10);
-	if (isNaN(this.zoom)) this.zoom = 2;
-
-    var mapOptions = {
-        		center: [this.latitude, this.longitude],
-       			zoom: this.zoom,
-       			controls: [],
-    			type: this.mapType ? this.mapType.split(":").pop() : 'yandex#map'
-    		};
-    		
-	this._mapObject = new ymaps.Map(mapDiv, mapOptions);
-    this._mapObject.behaviors.enable('scrollZoom',{smooth: false});
-    this._mapObject.controls.add('zoomControl',{smooth: false});
-		
-	// array of placemarks
-	this._placemarks = [];
-	
-	// array of polygons
-	this._polygons = [];
-	
-	// drilldown arrays
-	this._prevZoom = [];
-	this._prevCenter = [];
-	this._drillDownTitle = [];
-	
-	// create div for dirllUp button
-    var drillUpActionComponent = new ymaps.control.Button({
-            options: {
-                layout: ymaps.templateLayoutFactory.createClass("<div id='" + this.id + "_drillUpActionComponent" + "'></div>")
-            }
-        });
-        
-    var duPosition = {left: '5px', top: '5px'};
-    if (this.drillUpButtonPosition == "bottom"){
-    	duPosition = {left: '5px', bottom: '5px'};
-    }
-    this._mapObject.controls.add(drillUpActionComponent, { float: 'none', position: duPosition });
-
-	// create slider range
-    var sliderComponent = new ymaps.control.Button({
-            options: {
-                layout: ymaps.templateLayoutFactory.createClass(""+
-                "<div id='divSlider'>" + 
-        		"    <div id='divSliderButtonsPart'>" +
-        		"        <input id='btnOpenSlider'  type='button' value='Изменить диапазон'  onclick='zenPage.getComponentById(\"" + this.id + "\").openSlider();'/>" +
-        		"        <input id='btnCloseSlider' type='button' value='Сохранить диапазон' onclick='zenPage.getComponentById(\"" + this.id + "\").closeSlider();'/>" + 
-        		"    </div>" + 
-        		"    <div id='divSliderRangesPart'>" + 
-        		"        <input id='inputSliderMinValue' type='text' readonly='true' title='Минимальное значение параметра'/>" +  
-        		"        <input id='inputSliderValues'   type='text' readonly='true' title='Границы диапазона'/>" + 
-        		"        <input id='inputSliderMaxValue' type='text' readonly='true' title='Максимальное значение параметра'/>" + 
-        		"        <div id='slider-range' widgetid=\"" + this.id + "\">" + 
-        		"        </div>" + 
-        		"    </div>" +
-                "</div>")
-            }
-        });
-        
-    this._mapObject.controls.add(sliderComponent, { float: 'right'});
-]]></Implementation>
-</Method>
-
-<Method name="getMapObject">
-<Description>
-Return the google map API object used by the map view.</Description>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[	return this._mapObject;
-]]></Implementation>
-</Method>
-
-<Method name="getDrillUpActionComponent">
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[	return document.getElementById(this.id + '_drillUpActionComponent');
-]]></Implementation>
-</Method>
-
-<Method name="notifyViewHandler">
-<Description>
-Notification that the dataController associated with this dataView has raised an event.</Description>
-<FormalSpec>reason,data1,data2,data3</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	switch(reason) {
-		case 'dataChange':
-			this.onApplyFilters(true);
-		
-		case 'modelChange':
-		
-			// some change in dataController
-			this.acquireData();
-			this.syncPlacemarks();
-			this.syncPolygons();
-			break;
-		
-		case 'seriesChange':
-			break;
-	}
-]]></Implementation>
-</Method>
-
-<Method name="addPlacemark">
-<Description><![CDATA[
-Add a placemark to the map at given coordinates.<br/>
-<var>id</var> is a user-defined identifier associated with the placemark.<br/>
-Returns the placemark object.]]></Description>
-<FormalSpec>id,latitude,longitude,title,isClickable,icon,data</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var map = this.getMapObject();
-	if (!map || isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) return null;
-
-	var geometry = [latitude, longitude];
-	var properties = {hintContent: title}
-	var options = {};
-	
-	if (icon){
-		options.iconLayout = 'default#image';
-		options.iconImageHref = icon;
-		options.iconImageSize = this.placemarkIconSize ? [this.placemarkIconSize, this.placemarkIconSize] : [32, 32];
-	}
-	
-	var placemark = new ymaps.Placemark(geometry, properties, options);
-
-	// add to list
-	placemark._id = id;
-	placemark.data = data;
-	
-	var index = this._placemarks.length;
-	this._placemarks[index] = placemark;
-	
-	var code = new Function('zenPage.getComponent('+this.index+').placemarkClickHandler("'+index+'");');
-	placemark.events.add("click",code);
-	
-	code = new Function('zenPage.getComponent('+this.index+').placemarkRightClickHandler("'+index+'");');
-	placemark.events.add("contextmenu",code);
-	
-	return placemark;
-]]></Implementation>
-</Method>
-
-<Method name="addPolygon">
-<Description><![CDATA[
-Add a polygon to the map at given coordinates.<br/>
-<var>id</var> is a user-defined identifier associated with the polygon.<br/>
-Returns the polygon object.]]></Description>
-<FormalSpec>id,coords,color,fo,isClickable,title,data</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var map = this.getMapObject();
-    if (!map) return null;
-
-	if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
-		var colorAr = color.substring(4, color.length - 1).split(",");
-		color = "rgb(" + String(parseFloat(colorAr[0])).split(".")[0] + "," + String(parseFloat(colorAr[1])).split(".")[0] + "," + String(parseFloat(colorAr[2])).split(".")[0] + ")";
-	}
-	
-    var polygon = new ymaps.Polygon(
-     		/* geometry */
-     		coords, 
-     		/* properties */
-     		{
-	     		hintContent: title
-	     	},
-	     	/* options */ 
-	     	{
-	     		fillColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
-        	 	fillOpacity: fo,
-        	 	strokeColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
-        	 	strokeOpacity: (this.strokeOpacity ? this.strokeOpacity : 0.5),
-        	 	strokeWeight: (this.strokeWeight ? this.strokeWeight : 3),
-    		});
-
-   	// add to list
-	polygon._id = id;
-	polygon.data = data;
-		
-	var index = this._polygons.length;
-	this._polygons[index] = polygon;
-	
-	var code = new Function('event', 'zenPage.getComponent('+this.index+').polygonClickHandler("'+index+'", event);');
-	polygon.events.add("click", code);
-	
-	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonRightClickHandler("'+index+'", event);');
-	polygon.events.add("contextmenu", code);
-		
-	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOver("'+index+'", event);');
-	polygon.events.add('MouseEnter', code);
-	
-	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseMove("'+index+'", event);');
-	polygon.events.add('MouseMove', code);
-
-	code = new Function('event', 'zenPage.getComponent('+this.index+').polygonMouseOut("'+index+'", event);');
-	polygon.events.add('MouseLeave', code);
-
-	return polygon;
-]]></Implementation>
-</Method>
-
-<Method name="getPlacemark">
-<Internal>1</Internal>
-<FormalSpec>index</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[	return this._placemarks ? this._placemarks[index] : null;
-]]></Implementation>
-</Method>
-
-<Method name="getPolygon">
-<Internal>1</Internal>
-<FormalSpec>index</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[	return this._polygons ? this._polygons[index] : null;
-]]></Implementation>
-</Method>
-
-<Method name="placemarkClickHandler">
-<Internal>1</Internal>
-<FormalSpec>index</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var map = this.getMapObject();
-	if (map){
-		var placemark = this.getPlacemark(index);
-		if (placemark){
-			zenInvokeCallbackMethod(this.onclickplacemark,this,'onclickplacemark','placemark', placemark);
-		}
-	}
-]]></Implementation>
-</Method>
-
-<Method name="placemarkRightClickHandler">
-<Internal>1</Internal>
-<FormalSpec>index</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var map = this.getMapObject();
-	if (map){
-		var placemark = this.getPlacemark(index);
-		if (placemark){
-			zenInvokeCallbackMethod(this.onrightclickplacemark,this,'onrightclickplacemark','placemark', placemark);
-		}
-	}
-]]></Implementation>
-</Method>
-
-<Method name="polygonClickHandler">
-<Internal>1</Internal>
-<FormalSpec>index,event</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var map = this.getMapObject();
-	if (map){
-		var polygon = this.getPolygon(index);
-		if (polygon){
-			zenInvokeCallbackMethod(this.onclickpolygon, this, 'onclickpolygon', 'polygon', polygon, 'position', event.get('coords'));
-		}
-	}
-]]></Implementation>
-</Method>
-
-<Method name="polygonRightClickHandler">
-<Internal>1</Internal>
-<FormalSpec>index,event</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var map = this.getMapObject();
-	if (map){
-		var polygon = this.getPolygon(index);
-		if (polygon){
-			zenInvokeCallbackMethod(this.onrightclickpolygon, this, 'onrightclickpolygon', 'polygon', polygon, 'position', event.get('coords'));
-		}
-	}
 ]]></Implementation>
 </Method>
 
@@ -895,6 +565,305 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 				};
 			}
 		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="notifyViewHandler">
+<Description>
+Notification that the dataController associated with this dataView has raised an event.</Description>
+<FormalSpec>reason,data1,data2,data3</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	switch(reason) {
+		case 'dataChange':
+			this.onApplyFilters(true);		
+		case 'modelChange':
+			// some change in dataController
+			this.acquireData();
+			this.syncPlacemarks();
+			this.syncPolygons();
+			break;
+		
+		case 'seriesChange':
+			break;
+	}
+]]></Implementation>
+</Method>
+
+<Method name="renderContents">
+<Description>
+Client-side method to render control.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	// get data from controller, if present.
+	this.acquireData();
+	
+	var portlet = this;
+	ymaps.ready(function(){
+		portlet.initMap();
+		portlet.syncPlacemarks();
+		portlet.syncPolygons();
+	});
+]]></Implementation>
+</Method>
+
+<Method name="initMap">
+<Description>
+Initialize the map</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	this._mapObject = null;
+	var mapDiv = this.getEnclosingDiv();
+	
+	// test if we have not been rendered yet
+	if (mapDiv == null) return;
+	
+	mapDiv.style.height = "600px";	
+	mapDiv.style.width = "1300px";
+	
+ 	if (('undefined' == typeof ymaps) || ('undefined' == typeof ymaps.Map)) {
+		mapDiv.innerHTML = $$$Text('Unable to load yandex map api.');
+		return;
+	}
+	
+	this.latitude = parseFloat(this.latitude);
+	if (isNaN(this.latitude)) this.latitude = 60;
+	
+	this.longitude = parseFloat(this.longitude);
+	if (isNaN(this.longitude)) this.longitude = 85;
+	
+	this.zoom = parseInt(this.zoom, 10);
+	if (isNaN(this.zoom)) this.zoom = 2;
+
+    var mapOptions = {
+        		center: [this.latitude, this.longitude],
+       			zoom: this.zoom,
+       			controls: [],
+    			type: this.mapType ? this.mapType.split(":").pop() : 'yandex#map'
+    		};
+    		
+	this._mapObject = new ymaps.Map(mapDiv, mapOptions);
+    this._mapObject.behaviors.enable('scrollZoom',{smooth: false});
+    this._mapObject.controls.add('zoomControl',{smooth: false});
+		
+	// array of placemarks
+	this._placemarks = [];
+	
+	// array of polygons
+	this._polygons = [];
+	
+	// drilldown arrays
+	this._prevZoom = [];
+	this._prevCenter = [];
+	this._drillDownTitle = [];
+	
+	// create div for dirllUp button
+    var drillUpActionComponent = new ymaps.control.Button({
+            options: {
+                layout: ymaps.templateLayoutFactory.createClass("<div id='" + this.id + "_drillUpActionComponent" + "'></div>")
+            }
+        });
+        
+    var duPosition = {left: '5px', top: '5px'};
+    if (this.drillUpButtonPosition == "bottom"){
+    	duPosition = {left: '5px', bottom: '5px'};
+    }
+    
+    this._mapObject.controls.add(drillUpActionComponent, { float: 'none', position: duPosition });
+
+	// create slider range
+    var sliderComponent = new ymaps.control.Button({
+            options: {
+                layout: ymaps.templateLayoutFactory.createClass(""+
+                "<div id='divSlider'>" + 
+        		"    <div id='divSliderButtonsPart'>" +
+        		"        <input id='btnOpenSlider'  type='button' value='Изменить диапазон'  onclick='zenPage.getComponentById(\"" + this.id + "\").openSlider();'/>" +
+        		"        <input id='btnCloseSlider' type='button' value='Сохранить диапазон' onclick='zenPage.getComponentById(\"" + this.id + "\").closeSlider();'/>" + 
+        		"    </div>" + 
+        		"    <div id='divSliderRangesPart'>" + 
+        		"        <input id='inputSliderMinValue' type='text' readonly='true' title='Минимальное значение параметра'/>" +  
+        		"        <input id='inputSliderValues'   type='text' readonly='true' title='Границы диапазона'/>" + 
+        		"        <input id='inputSliderMaxValue' type='text' readonly='true' title='Максимальное значение параметра'/>" + 
+        		"        <div id='slider-range' widgetid=\"" + this.id + "\">" + 
+        		"        </div>" + 
+        		"    </div>" +
+                "</div>")
+            }
+        });
+        
+    this._mapObject.controls.add(sliderComponent, { float: 'right'});
+]]></Implementation>
+</Method>
+
+<Method name="getMapObject">
+<Description>
+Return the google map API object used by the map view.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	return this._mapObject;
+]]></Implementation>
+</Method>
+
+<Method name="addPlacemark">
+<Description><![CDATA[
+Add a placemark to the map at given coordinates.<br/>
+<var>id</var> is a user-defined identifier associated with the placemark.<br/>
+Returns the placemark object.]]></Description>
+<FormalSpec>id,latitude,longitude,title,isClickable,icon,data</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var map = this.getMapObject();
+	if (!map || isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) return null;
+
+	var geometry = [latitude, longitude];
+	var properties = {hintContent: title}
+	var options = {};
+	
+	if (icon){
+		options.iconLayout = 'default#image';
+		options.iconImageHref = icon;
+		options.iconImageSize = this.placemarkIconSize ? [this.placemarkIconSize, this.placemarkIconSize] : [32, 32];
+	}
+	
+	var placemark = new ymaps.Placemark(geometry, properties, options);
+
+	// add to list
+	placemark._id = id;
+	placemark.data = data;
+	
+	var index = this._placemarks.length;
+	this._placemarks[index] = placemark;
+	
+	var code = new Function('zenPage.getComponent('+this.index+').placemarkEventHandler("'+index+'", event);');
+	placemark.events.add("click",code);
+	
+	code = new Function('zenPage.getComponent('+this.index+').placemarkEventHandler("'+index+'", event);');
+	placemark.events.add("contextmenu",code);
+	
+	return placemark;
+]]></Implementation>
+</Method>
+
+<Method name="getPlacemark">
+<Description>
+Get placemark from array by index</Description>
+<Internal>1</Internal>
+<FormalSpec>index</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	return this._placemarks ? this._placemarks[index] : null;
+]]></Implementation>
+</Method>
+
+<Method name="placemarkEventHandler">
+<Description>
+Click by placemark </Description>
+<Internal>1</Internal>
+<FormalSpec>index,event</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var placemark = this.getPlacemark(index);
+	if (!placemark) return;
+	
+	switch(event.type){
+		case 'click':
+			zenInvokeCallbackMethod(this.onclickplacemark, this, 'onclickplacemark', 'placemark', placemark);
+			break;	
+		case 'contextmenu':
+			zenInvokeCallbackMethod(this.onrightclickplacemark, this, 'onrightclickplacemark', 'placemark', placemark);
+			break;
+	}
+]]></Implementation>
+</Method>
+
+<Method name="addPolygon">
+<Description><![CDATA[
+Add a polygon to the map at given coordinates.<br/>
+<var>id</var> is a user-defined identifier associated with the polygon.<br/>
+Returns the polygon object.]]></Description>
+<FormalSpec>id,coords,color,fo,isClickable,title,data</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var map = this.getMapObject();
+    if (!map) return null;
+
+	if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
+		var colorAr = color.substring(4, color.length - 1).split(",");
+		color = "rgb(" + String(parseFloat(colorAr[0])).split(".")[0] + "," + String(parseFloat(colorAr[1])).split(".")[0] + "," + String(parseFloat(colorAr[2])).split(".")[0] + ")";
+	}
+	
+    var polygon = new ymaps.Polygon(
+     		/* geometry */
+     		coords, 
+     		/* properties */
+     		{
+	     		hintContent: title
+	     	},
+	     	/* options */ 
+	     	{
+	     		fillColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        	 	fillOpacity: fo,
+        	 	strokeColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        	 	strokeOpacity: (this.strokeOpacity ? this.strokeOpacity : 0.5),
+        	 	strokeWeight: (this.strokeWeight ? this.strokeWeight : 3),
+    		});
+
+   	// add to list
+	polygon._id = id;
+	polygon.data = data;
+		
+	var index = this._polygons.length;
+	this._polygons[index] = polygon;
+	
+	polygon.events.add("click", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
+	polygon.events.add("contextmenu", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
+	polygon.events.add("mouseenter", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
+	polygon.events.add("mouseleave", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
+	
+	return polygon;
+]]></Implementation>
+</Method>
+
+<Method name="getPolygon">
+<Description>
+Get polygon from array by index</Description>
+<Internal>1</Internal>
+<FormalSpec>index</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	return this._polygons ? this._polygons[index] : null;
+]]></Implementation>
+</Method>
+
+<Method name="polygonEventHandler">
+<Description>
+ </Description>
+<Internal>1</Internal>
+<FormalSpec>index,event</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var polygon = this.getPolygon(index);
+	if (!polygon) return;
+
+	switch(event.get('type')){
+		case 'click':
+			zenInvokeCallbackMethod(this.onclickpolygon, this, 'onclickpolygon', 'polygon', polygon, 'position', event.get('coords'));
+			break;	
+		case 'contextmenu':
+			zenInvokeCallbackMethod(this.onrightclickpolygon, this, 'onrightclickpolygon', 'polygon', polygon, 'position', event.get('coords'));
+			break;		
+		case 'mouseenter':
+			break;
+		case 'mouseleave':
+			break;
 	}
 ]]></Implementation>
 </Method>
@@ -1313,7 +1282,7 @@ Perform a drilldown</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	var du = this.getDrillUpActionComponent();
+	var du = document.getElementById(this.id + '_drillUpActionComponent')
 	du.innerHTML = '';
 	
 	if (!title)	return;
