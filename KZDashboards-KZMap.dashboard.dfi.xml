@@ -6,26 +6,30 @@
     <control name="" action="applyFilter" target="*" targetProperty="ParentGuid" location="widget" type="hidden" controlClass="" label="ParentGuid" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen=""></control>
     <control name="" action="applyFilter" target="*" targetProperty="ParameterName" location="widget" type="dropdown" controlClass="" label="Параметр" title="" value="Население" text="" readOnly="false" valueList="" displayList="" activeWhen=""></control>
     <control name="" action="applyFilter" target="" targetProperty="PolygonsMarkers" location="widget" type="dropdown" controlClass="" label="Вариант отображения" title="" value="Polygons" text="" readOnly="false" valueList="" displayList="" activeWhen=""></control>
-    <property name="colorProperty">Color</property>
-    <property name="coordsJsFile">polygonsKZ.js</property>
-    <property name="coordsProperty">Guid</property>
     <property name="drillUpButtonPosition">top</property>
-    <property name="fillOpacity">0.6</property>
     <property name="getAdditionInfoForObjectById">KZ.ParameterValue;GetParametersData</property>
-    <property name="getBordersMethod">KZ.Borders;GetBorders</property>
-    <property name="hoverOpacity">0.4</property>
     <property name="latitude">49</property>
-    <property name="latitudeProperty">Latitude</property>
-    <property name="longitude">66</property>
-    <property name="longitudeProperty">Longitude</property>
+    <property name="longitude">65</property>
     <property name="mapType">Дорожная карта:yandex#map</property>
+    <property name="onaddplacemark">
+    	placemark.properties.set("hintContent", placemark.data.Name + ' (' + placemark.data.Value + ')');
+    </property>
+    <property name="onaddpolygon">
+    	polygon.properties.set("hintContent", polygon.data.Name + ' (' + polygon.data.Value + ')');
+    </property>
     <property name="onclickplacemark"><![CDATA[   
-    	var content = "<div style='font-family: arial; font-size: 12px;'>" + 
-    						"<b>" + placemark.data.Name + "</b><br>" + 
-    						"<i>onclickplacemark</i>" + 
-    				  "</div>";
-    				  	
-      	zenThis.openBallonAtPosition(placemark.geometry.getCoordinates(), content);
+    	var content = '<div style="font-size: 12px; font-family:arial;"><span style="font-weight: bold;">' + placemark.data.Name + '</span><br>';    
+    	
+    	var otherInfo = zenThis.GetAdditionInformationForObjectById(placemark.data.Guid);
+ 		otherInfo.parameters = otherInfo.parameters.split(';');
+ 		otherInfo.unitNames = otherInfo.unitNames.split(';');
+ 		otherInfo.values = otherInfo.values.split(';');
+ 		
+    	for (var i=0; i < otherInfo.parameters.length-1; i++){
+    		content += '<br>' + otherInfo.parameters[i] + ': ' + zenThis.beatNumber(otherInfo.values[i]) + ' ' + otherInfo.unitNames[i]; 
+    	}
+    	
+    	zenThis.openBallonAtPosition(placemark.geometry.getCoordinates(), content + '</div>');
     ]]></property>
     <property name="onclickpolygon"><![CDATA[       	
     	if(!zenThis.lastPolygon){     		
@@ -54,6 +58,26 @@
      	zenThis.lastPolygon.push(zenThis.currPolygon);
      	zenThis.getMapObject().geoObjects.add(zenThis.currPolygon);
      ]]></property>
+    <property name="oncontextmenuplacemark">
+    	console.log('oncontextmenuplacemark');
+    </property>
+    <property name="oncontextmenupolygon"><![CDATA[
+    	var content = '<div style="font-size: 12px; font-family:arial;"><span style="font-weight: bold;">' + polygon.data.Name + '</span><br>';    
+    	if(polygon.data.Level==0 || polygon.data.Level==1){
+    		content += polygon.data.CenterName ? ('<br>Административный центр: ' + polygon.data.CenterName + '<br>') : '';    		
+    	}
+    	
+    	var otherInfo = zenThis.GetAdditionInformationForObjectById(polygon.data.Guid);
+ 		otherInfo.parameters = otherInfo.parameters.split(';');
+ 		otherInfo.unitNames = otherInfo.unitNames.split(';');
+ 		otherInfo.values = otherInfo.values.split(';');
+ 		
+    	for (var i=0; i < otherInfo.parameters.length-1; i++){
+    		content += '<br>' + otherInfo.parameters[i] + ': ' + zenThis.beatNumber(otherInfo.values[i]) + ' ' + otherInfo.unitNames[i]; 
+    	}
+    	
+    	zenThis.openBallonAtPosition(position, content + '</div>');
+    ]]></property>
     <property name="ondrilldown">
     	console.log("dash ondrilldown");
     	
@@ -92,43 +116,25 @@
 		}
 	}
     ]]></property>
-    <property name="onrightclickplacemark"><![CDATA[  
-    	var content = "<div style='font-family: arial; font-size: 12px;'>" + 
-    						"<b>" + placemark.data.Name + "</b><br>" + 
-    						"<i>onrightclickplacemark</i>" + 
-    				  "</div>";
-    				  	
-      	zenThis.openBallonAtPosition(placemark.geometry.getCoordinates(), content);
-    ]]></property>
-    <property name="onrightclickpolygon"><![CDATA[
-    	var content = '<div style="font-size: 12px; font-family:arial;"><span style="font-weight: bold;">' + polygon.data.Name + '</span><br>';    
-    	if(polygon.data.Level==0 || polygon.data.Level==1){
-    		content += polygon.data.CenterName ? ('<br>Административный центр: ' + polygon.data.CenterName + '<br>') : '';    		
-    	}
-    	
-    	var otherInfo = zenThis.GetAdditionInformationForObjectById(polygon.data.Guid);
- 		console.log(otherInfo);
- 		otherInfo.parameters = otherInfo.parameters.split(';');
- 		otherInfo.unitNames = otherInfo.unitNames.split(';');
- 		otherInfo.values = otherInfo.values.split(';');
- 		
-    	for (var i=0; i < otherInfo.parameters.length-1; i++){
-    		content += '<br>' + otherInfo.parameters[i] + ': ' + zenThis.beatNumber(otherInfo.values[i]) + ' ' + otherInfo.unitNames[i]; 
-    	}
-    	
-    	zenThis.openBallonAtPosition(position, content + '</div>');
-    ]]></property>
     <property name="placemarkDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,ParameterId,Level,CenterName,SpecialIcon</property>
     <property name="placemarkIcon">http://i.imgur.com/pBB7MYT.png</property>
     <property name="placemarkIconSize"></property>
+    <property name="placemarkLatitudeProperty">Latitude</property>
+    <property name="placemarkLongitudeProperty">Longitude</property>
     <property name="placemarkSpecialIcon">http://i.imgur.com/bFJRQfv.png</property>
     <property name="placemarkSpecialProperty">SpecialIcon</property>
     <property name="placemarkTitleProperty">Name</property>
+    <property name="polygonColorProperty"></property>
+    <property name="polygonCoordsJsFile">polygonsKZ.js</property>
+    <property name="polygonCoordsProperty">Guid</property>
     <property name="polygonDataProperties">Name,Guid,DefaultZoom,CanDrillDown,Value,DataUrl,ParameterId,Level,CenterName,Color</property>
+    <property name="polygonFillOpacity">0.6</property>
+    <property name="polygonHoverOpacity">0.4</property>
+    <property name="polygonLoadBordersMethod">KZ.Borders;GetBorders</property>
+    <property name="polygonSaveBordersMethod">KZ.Borders;SaveBorders</property>
+    <property name="polygonStrokeOpacity">1</property>
+    <property name="polygonStrokeWeight">1</property>
     <property name="polygonTitleProperty">Name</property>
-    <property name="saveBordersMethod">KZ.Borders;SaveBorders</property>
-    <property name="strokeOpacity">1</property>
-    <property name="strokeWeight">1</property>
     <property name="zoom">4</property>
   </widget>
 </dashboard>

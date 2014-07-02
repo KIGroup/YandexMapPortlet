@@ -2,7 +2,19 @@
 <Export generator="Cache" version="25">
 <Class name="KZ.MapPortlet">
 <Description>
-Description</Description>
+Portlet that displays a clickable yandex map. Supports 2012.2 and higher versions of Cache.
+Improvements compared to %DeepSee.Component.Widget.map:
+1) Polygon support. In addition to placemarksmarks, this widget supports clickable colored polygons with tooltips.
+   The "polygonCoordsProperty" widget setting should be set to the name of a data source property that provides polygon coordinates. The value of this property is expected to contain one or more ordered sequences of coordinates each of which designates a closed loop.
+   Sequences are delimited by ; (semicolon). Coordinates in such a sequence are delimited by spaces, for example: 42.725042,55.257428,0 42.727162,55.270206,0 42.737196,55.27019,0 42.725042,55.257428,0
+   An alternative approach is to store polygon coordinates in a static js file rather than in the database. See polygonCoordsJsFile property description for details.
+2) Configurable names of data source properties that provide placemark and polygon data (latitude, longitude, color, opacity etc).
+3) Configurable "onclick", "oncontextmenu" handler for placemarks and polygons. Configurable "onaddpolygon" and "onaddplacemark" handlers.
+4) Drilldown capabilities.
+5) Slider range for polygons. If polygonColorProperty not empty, that created slider component on map and load jquery libraries(in method %DrawHTML).
+   SaveBordersMethod - method for save range borders, pattern - 'ClassName;MethodName', method takes a single parameter(object) - {parameterId: X, level: X, parentRegionId:X, minValue: X, maxValue: X}. parentRegionId - may be null if this first level
+   LoadBordersMethod - method to get an range borders, pattern - 'ClassName;MethodName', method takes a single parameter(object) - {parameterId: X, level: X, parentRegionId:X}. parentRegionId - may be null if this first level
+6) getAdditionInfoForObjectById - method to get an proxyObject with other information, pattern - 'ClassName;MethodName', method takes a single parameter(string) - object id. Call this method like this - 'var otherInfo = zenThis.GetAdditionInformationForObjectById(id);'</Description>
 <Super>%DeepSee.Component.Portlet.abstractPortlet</Super>
 <TimeCreated>63223,54909.281803</TimeCreated>
 
@@ -15,7 +27,7 @@ Yandex map API</Description>
 <Property name="latitude">
 <Description>
 
-MAP -------------------------------------------------------------------------------------- MAP
+MAP Properties -------------------------------------------------------------------------------------- 
 
 Initial latitude (as a decimal number).</Description>
 <Type>%ZEN.Datatype.float</Type>
@@ -47,7 +59,7 @@ Initial map display.</Description>
 <Property name="onaddplacemark">
 <Description>
 
-PLACEMARK ------------------------------------------------------------------------------- PLACEMARK
+PLACEMARK Properties ------------------------------------------------------------------------------- 
 
 onaddplacemark event handler</Description>
 <Type>%ZEN.Datatype.eventHandler</Type>
@@ -59,9 +71,9 @@ onclickplacemark event handler: if defined, this event is fired when a placemark
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
-<Property name="onrightclickplacemark">
+<Property name="oncontextmenuplacemark">
 <Description>
-onrightclickplacemark event handler: if defined, this event is fired when a placemark is clicked.</Description>
+oncontextmenuplacemark event handler: if defined, this event is fired when a placemark is clicked.</Description>
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
@@ -71,13 +83,13 @@ List of properties in data source that provides data to be stored within the cur
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="latitudeProperty">
+<Property name="placemarkLatitudeProperty">
 <Description>
 Name of property in data source that provides the latitude value for a placemark.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="longitudeProperty">
+<Property name="placemarkLongitudeProperty">
 <Description>
 Name of property in data source that provides the longitude value for a placemark.</Description>
 <Type>%ZEN.Datatype.string</Type>
@@ -122,7 +134,7 @@ Placemark icon size (ignored if both placemarkIcon and placemarkIconProperty are
 <Property name="onaddpolygon">
 <Description>
 
-POLYGON --------------------------------------------------------------------------------- POLYGON
+POLYGON Properties ---------------------------------------------------------------------------------
 
 onaddpolygon event handler</Description>
 <Type>%ZEN.Datatype.eventHandler</Type>
@@ -134,26 +146,26 @@ onclickpolygon event handler: if defined, this event is fired when a polygon is 
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
-<Property name="onrightclickpolygon">
+<Property name="oncontextmenupolygon">
 <Description>
-onrightclickpolygon event handler: if defined, this event is fired when a polygon is clicked.</Description>
+oncontextmenupolygon event handler: if defined, this event is fired when a polygon is clicked.</Description>
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
 
-<Property name="coordsProperty">
+<Property name="polygonCoordsProperty">
 <Description>
 Name of property in data source that provides the coordinates array for a polygon.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="coordsJsFile">
+<Property name="polygonCoordsJsFile">
 <Description><![CDATA[
 JS file containing "function loadCoordinates(polygonCoordsArray) {}" that populates a polygon coordinates associative array.
-If <var>coordsJsFile</var> is specified then <var>coordsProperty</var> must contain name of the property that provides keys for the coordinates associative array.]]></Description>
+If <var>polygonCoordsJsFile</var> is specified then <var>polygonCoordsProperty</var> must contain name of the property that provides keys for the coordinates associative array.]]></Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="colorProperty">
+<Property name="polygonColorProperty">
 <Description>
 Name of property in data source that provides the color of a polygon.</Description>
 <Type>%ZEN.Datatype.string</Type>
@@ -171,59 +183,59 @@ List of properties in data source that provides data to be stored within the cur
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="fillOpacity">
+<Property name="polygonFillOpacity">
 <Description>
 Default fillOpacity for polygons.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="fillOpacityProperty">
+<Property name="polygonFillOpacityProperty">
 <Description>
 Name of property in data source that provides polygon fill opacity.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="hoverOpacity">
+<Property name="polygonHoverOpacity">
 <Description>
 Hover opacity for clickable polygons.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="strokeOpacity">
+<Property name="polygonStrokeOpacity">
 <Description>
 Polygon stroke opacity.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="strokeWeight">
+<Property name="polygonStrokeWeight">
 <Description>
 Polygon stroke weight.</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="isClickableProperty">
-<Description>
-Name of property in data source that provides "сlickable" attribute value for placemarks and polygons.</Description>
-<Type>%ZEN.Datatype.string</Type>
-</Property>
-
-<Property name="saveBordersMethod">
+<Property name="polygonSaveBordersMethod">
 <Description>
 Method name for save slider range borders</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="getBordersMethod">
+<Property name="polygonLoadBordersMethod">
 <Description>
 Method name to get slider range borders</Description>
 <Type>%ZEN.Datatype.string</Type>
 </Property>
 
-<Property name="ondrilldown">
+<Property name="isClickableProperty">
 <Description>
 
-COMMON --------------------------------------------------------------------------------- COMMON
+COMMON Properties ---------------------------------------------------------------------------------
 
+Name of property in data source that provides "сlickable" attribute value for placemarks and polygons.</Description>
+<Type>%ZEN.Datatype.string</Type>
+</Property>
+
+<Property name="ondrilldown">
+<Description>
 ondrilldown event handler: if defined, this event is fired from drillDown() method.</Description>
 <Type>%ZEN.Datatype.eventHandler</Type>
 </Property>
@@ -255,6 +267,10 @@ Method name to get proxyObject with other info for object</Description>
 </Property>
 
 <Method name="%OnGetPortletName">
+<Description>
+
+PORTLET Methods ---------------------------------------------------------------------------------------
+</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[	quit "KZ Map"
@@ -275,7 +291,8 @@ Method name to get proxyObject with other info for object</Description>
 <Implementation><![CDATA[
 	kill pInfo
 
-	set tTypeList = "ENUM^"_$$$Text("Roadmap","%DeepSee")_":yandex#map,"_
+	set tTypeList = "ENUM^"_
+			$$$Text("Roadmap","%DeepSee")_":yandex#map,"_
 			$$$Text("Satellite","%DeepSee")_":yandex#satellite,"_
 			$$$Text("Hybrid","%DeepSee")_":yandex#hybrid"
 	
@@ -283,12 +300,12 @@ Method name to get proxyObject with other info for object</Description>
 	set pInfo($I(pInfo)) = $LB("zoom",2,"%Integer",$$$Text("Zoom","%DeepSee"),$$$Text("Initial zoom level for the map","%DeepSee"))
 	set pInfo($I(pInfo)) = $LB("latitude",60,"%Number",$$$Text("Starting latitude","%DeepSee"),$$$Text("Initial latitude for the map","%DeepSee"))
 	set pInfo($I(pInfo)) = $LB("longitude",85,"%Number",$$$Text("Starting longitude","%DeepSee"),$$$Text("Initial longitude for the map","%DeepSee"))
-
-	set pInfo($I(pInfo)) = $LB("onclickplacemark","","%ZEN.Datatype.eventHandler","'onclickplacemark' event handler","User callback for onclickplacemark event")
-	set pInfo($I(pInfo)) = $LB("onrightclickplacemark","","%ZEN.Datatype.eventHandler","'onrightclickplacemark' event handler","User callback for onrightclickplacemark event")
 	
-	set pInfo($I(pInfo)) = $LB("latitudeProperty","","%ZEN.Datatype.string","Latitude property","Latitude property for placemarks")
-	set pInfo($I(pInfo)) = $LB("longitudeProperty","","%ZEN.Datatype.string","Longitude property","Longitude property for placemarks")
+	set pInfo($I(pInfo)) = $LB("onclickplacemark","","%ZEN.Datatype.eventHandler","'onclickplacemark' event handler","User callback for onclickplacemark event")
+	set pInfo($I(pInfo)) = $LB("oncontextmenuplacemark","","%ZEN.Datatype.eventHandler","'oncontextmenuplacemark' event handler","User callback for oncontextmenuplacemark event")
+	
+	set pInfo($I(pInfo)) = $LB("placemarkLatitudeProperty","","%ZEN.Datatype.string","Latitude property","Latitude property for placemarks")
+	set pInfo($I(pInfo)) = $LB("placemarkLongitudeProperty","","%ZEN.Datatype.string","Longitude property","Longitude property for placemarks")
 	set pInfo($I(pInfo)) = $LB("placemarkTitleProperty","","%ZEN.Datatype.string","Placemark title property","Title property for placemarks")
 	set pInfo($I(pInfo)) = $LB("placemarkDataProperties","","%ZEN.Datatype.string","Placemark data properties","List of data properties for placemarks")
 	set pInfo($I(pInfo)) = $LB("placemarkIconProperty","","%ZEN.Datatype.string","Placemark icon property","Placemark icon property")
@@ -297,23 +314,23 @@ Method name to get proxyObject with other info for object</Description>
 	set pInfo($I(pInfo)) = $LB("placemarkSpecialProperty","","%ZEN.Datatype.string","Placemark special property","Placemark special property for special icon")
 	set pInfo($I(pInfo)) = $LB("placemarkIconSize","","%ZEN.Datatype.string","Placemark icon size","Default placemark icon size (ingored if Placemark icon is not set)")
 	
-	set pInfo($I(pInfo)) = $LB("coordsJsFile","","%ZEN.Datatype.string","JS file with coords","JS file with javascript 'function loadCoordinates(polygonCoordsArray) {...}' that populates polygonCoordsArray argument with polygon coordinates keyed by values from the data source property specified in 'Polygon coords property' setting.")
-	set pInfo($I(pInfo)) = $LB("coordsProperty","","%ZEN.Datatype.string","Polygon coords property","Data source property that provides coordinates for polygons if 'JS file with coords' is not specified. Otherwise this setting should contain name of data source property that provides keys for associative array which is populated by javascript code in 'JS file with coords'.")
+	set pInfo($I(pInfo)) = $LB("polygonCoordsJsFile","","%ZEN.Datatype.string","JS file with coords","JS file with javascript 'function loadCoordinates(polygonCoordsArray) {...}' that populates polygonCoordsArray argument with polygon coordinates keyed by values from the data source property specified in 'Polygon coords property' setting.")
+	set pInfo($I(pInfo)) = $LB("polygonCoordsProperty","","%ZEN.Datatype.string","Polygon coords property","Data source property that provides coordinates for polygons if 'JS file with coords' is not specified. Otherwise this setting should contain name of data source property that provides keys for associative array which is populated by javascript code in 'JS file with coords'.")
 	
 	set pInfo($I(pInfo)) = $LB("onclickpolygon","","%ZEN.Datatype.eventHandler","'onclickpolygon' event handler","User callback for onclickpolygon event")	
-	set pInfo($I(pInfo)) = $LB("onrightclickpolygon","","%ZEN.Datatype.eventHandler","'onrightclickpolygon' event handler","User callback for onrightclickpolygon event")	
+	set pInfo($I(pInfo)) = $LB("oncontextmenupolygon","","%ZEN.Datatype.eventHandler","'oncontextmenupolygon' event handler","User callback for oncontextmenupolygon event")	
 	
 	
-	set pInfo($I(pInfo)) = $LB("colorProperty","","%ZEN.Datatype.string","Polygon сolor property","Color property for polygons")
+	set pInfo($I(pInfo)) = $LB("polygonColorProperty","","%ZEN.Datatype.string","Polygon сolor property","Color property for polygons")
 	set pInfo($I(pInfo)) = $LB("polygonTitleProperty","","%ZEN.Datatype.string","Polygon title property","Title property for polygons")
 	set pInfo($I(pInfo)) = $LB("polygonDataProperties","","%ZEN.Datatype.string","Polygon data properties","List of data properties for polygons")
-	set pInfo($I(pInfo)) = $LB("fillOpacityProperty","","%ZEN.Datatype.string","Fill opacity property","Fill opacity property for polygons")
+	set pInfo($I(pInfo)) = $LB("polygonFillOpacityProperty","","%ZEN.Datatype.string","Fill opacity property","Fill opacity property for polygons")
 	set pInfo($I(pInfo)) = $LB("isClickableProperty","","%ZEN.Datatype.string","IsClickable flag property","IsClickable flag property for polygons")
 	
-	set pInfo($I(pInfo)) = $LB("fillOpacity","","%ZEN.Datatype.string","Fill opacity","Default fill opacity for polygons")
-	set pInfo($I(pInfo)) = $LB("hoverOpacity","","%ZEN.Datatype.string","Hover opacity","Hover opacity for clickable polygons")
-	set pInfo($I(pInfo)) = $LB("strokeOpacity","","%ZEN.Datatype.string","Stroke opacity","Stroke opacity for polygons")
-	set pInfo($I(pInfo)) = $LB("strokeWeight","","%ZEN.Datatype.string","Stroke weight","Stroke weight for polygons")
+	set pInfo($I(pInfo)) = $LB("polygonFillOpacity","","%ZEN.Datatype.string","Fill opacity","Default fill opacity for polygons")
+	set pInfo($I(pInfo)) = $LB("polygonHoverOpacity","","%ZEN.Datatype.string","Hover opacity","Hover opacity for clickable polygons")
+	set pInfo($I(pInfo)) = $LB("polygonStrokeOpacity","","%ZEN.Datatype.string","Stroke opacity","Stroke opacity for polygons")
+	set pInfo($I(pInfo)) = $LB("polygonStrokeWeight","","%ZEN.Datatype.string","Stroke weight","Stroke weight for polygons")
 	
 	set pInfo($I(pInfo)) = $LB("drillUpButtonPosition","top","ENUM^top,bottom","Drill-up button position","Where ""<< Back"" button is located")
 		
@@ -326,12 +343,152 @@ Method name to get proxyObject with other info for object</Description>
 	
 
 	//[+]
-	set pInfo($I(pInfo)) = $LB("saveBordersMethod","ClassName;MethodName","%String","Save borders method","Method for save range borders, pattern - 'ClassName;MethodName', method takes a single parameter(object) - {parameterId: X, level: X, parentRegionId:X, minValue: X, maxValue: X}. parentRegionId - may be null if this first level")		
-	set pInfo($I(pInfo)) = $LB("getBordersMethod","ClassName;MethodName","%String","Get borders method","Method to get an range borders, pattern - 'ClassName;MethodName', method takes a single parameter(object) - {parameterId: X, level: X, parentRegionId:X}. parentRegionId - may be null if this first level")		
+	set pInfo($I(pInfo)) = $LB("polygonSaveBordersMethod","ClassName;MethodName","%String","Save borders method","Method for save range borders, pattern - 'ClassName;MethodName', method takes a single parameter(object) - {parameterId: X, level: X, parentRegionId:X, minValue: X, maxValue: X}. parentRegionId - may be null if this first level")		
+	set pInfo($I(pInfo)) = $LB("polygonLoadBordersMethod","ClassName;MethodName","%String","Get borders method","Method to get an range borders, pattern - 'ClassName;MethodName', method takes a single parameter(object) - {parameterId: X, level: X, parentRegionId:X}. parentRegionId - may be null if this first level")		
 	set pInfo($I(pInfo)) = $LB("getAdditionInfoForObjectById","ClassName;MethodName","%String","Get addition info for object","Method to get an proxyObject with other information, pattern - 'ClassName;MethodName', method takes a single parameter(string) - object id. Call this method like this - 'var otherInfo = zenThis.GetAdditionInformationForObjectById(id);'")		
 	
 
 	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="%DrawHTML">
+<Implementation><![CDATA[
+	
+	// This causes ZEN to render this component on the client.
+	set ..renderFlag = ..renderFlag + 1
+	
+	// copy ..settings into properties
+	#dim propName As %String = $order(..settings(""))
+	while (propName '= ""){
+		if ("" '= $get(..settings(propName)))
+			try{
+				set $property($this, propName) = ..settings(propName)
+			}
+			catch {}
+
+		set propName = $order(..settings(propName))
+	}
+	
+	&html<	
+	<script type="text/javascript">
+		
+	function hsv2rgb(h,s,v){
+		// Adapted from http://www.easyrgb.com/math.html
+		// hsv values = 0 - 1, rgb values = 0 - 255
+		var r, g, b;
+		var RGB = new Array();
+		if(s == 0){
+		  RGB['red']=RGB['green']=RGB['blue']=Math.round(v*255);
+		}
+		else{
+		  var var_h = h * 6;  // h must be < 1
+		  if (var_h == 6) var_h = 0;
+		  var var_i = Math.floor( var_h );
+		  var var_1 = v*(1-s);
+		  var var_2 = v*(1-s*(var_h-var_i));
+		  var var_3 = v*(1-s*(1-(var_h-var_i)));
+		  if (var_i == 0){
+		    var_r = v; 
+		    var_g = var_3; 
+		    var_b = var_1;
+		  }
+		  else if (var_i == 1){
+		    var_r = var_2;
+		    var_g = v;
+		    var_b = var_1;
+		  }
+		  else if (var_i == 2){
+		    var_r = var_1;
+		    var_g = v;
+		    var_b = var_3
+		  }
+		  else if (var_i == 3){
+		    var_r = var_1;
+		    var_g = var_2;
+		    var_b = v;
+		  }
+		  else if (var_i == 4){
+		    var_r = var_3;
+		    var_g = var_1;
+		    var_b = v;
+		  }
+		  else{
+		    var_r = v;
+		    var_g = var_1;
+		    var_b = var_2
+		  }
+		  RGB['red'] = Math.round(var_r * 255);
+		  RGB['green'] = Math.round(var_g * 255);
+		  RGB['blue'] = Math.round(var_b * 255);
+		}
+		return '#' + RGB['red'].toString(16) + RGB['green'].toString(16) + RGB['blue'].toString(16);
+	};
+	</script>
+	>
+	
+	if (..polygonCoordsJsFile '= ""){
+		&html<<script type='text/javascript' src='#(..polygonCoordsJsFile)#'></script>>
+	}
+	
+	if (..polygonColorProperty = ""){
+		// JQUERY Libraries
+		&html<
+		  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	      <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+	    >
+	}
+]]></Implementation>
+</Method>
+
+<Method name="getControl">
+<Description>
+Obtain a reference to a filter (or any other widget control).</Description>
+<FormalSpec>ind</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	return zenPage.getComponent(this.parent.parent.controlIndices[ind]);
+]]></Implementation>
+</Method>
+
+<Method name="getFilterStateArray">
+<Description>
+Get the array of filter state information for the widget.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	return this.parent.parent.getFilterStateArray();
+]]></Implementation>
+</Method>
+
+<Method name="onApplyFilters">
+<Internal>1</Internal>
+<FormalSpec>refresh</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	zenInvokeCallbackMethod(this.onapplyfilters,this,'onapplyfilters','refresh',refresh);
+]]></Implementation>
+</Method>
+
+<Method name="notifyViewHandler">
+<Description>
+Notification that the dataController associated with this dataView has raised an event.</Description>
+<FormalSpec>reason,data1,data2,data3</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	switch(reason) {
+		case 'dataChange':
+			this.onApplyFilters(true);		
+		case 'modelChange':
+			// some change in dataController
+			this.acquireData();
+			this.syncPlacemarks();
+			this.syncPolygons();
+			break;
+		
+		case 'seriesChange':
+			break;
+	}
 ]]></Implementation>
 </Method>
 
@@ -342,7 +499,7 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-		
+	
 	var controller = this.getController();
 	if (null == controller){
 		// try to connect to dataController
@@ -353,7 +510,7 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 	// array of placemark data
 	this._placemarkData = [];
 	
-	if (controller && (this.latitudeProperty != '') && (this.longitudeProperty != '')){
+	if (controller && (this.placemarkLatitudeProperty != '') && (this.placemarkLongitudeProperty != '')){
 		// get data from controller (make sure data is loaded)
 		var dims = controller.getDimensions();
 		
@@ -381,10 +538,10 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 			if (!invert){
 				for (var p = 0; p < seriesSize; p++){
 					var pname = controller.getPropertyName(p);
-					if (pname == this.latitudeProperty) {
+					if (pname == this.placemarkLatitudeProperty) {
 						latCol = p;
 					}
-					if (pname == this.longitudeProperty) {
+					if (pname == this.placemarkLongitudeProperty) {
 						longCol = p;
 					}
 					if (pname == this.placemarkTitleProperty) {
@@ -419,8 +576,8 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 						if (specIconCol >= 0) specIcon = controller.getData(specIconCol,n);
 					}
 					else{
-						var lat = controller.getDataByName(this.latitudeProperty,n);
-						var long = controller.getDataByName(this.longitudeProperty,n);
+						var lat = controller.getDataByName(this.placemarkLatitudeProperty,n);
+						var long = controller.getDataByName(this.placemarkLongitudeProperty,n);
 						if (this.placemarkTitleProperty != '') sname = controller.getDataByName(this.placemarkTitleProperty,n);
 						if (this.isClickableProperty != '') isClickable = controller.getDataByName(this.isClickableProperty,n);
 						if (this.placemarkIconProperty != '') mi = controller.getDataByName(this.placemarkIconProperty,n);
@@ -451,17 +608,17 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 				}
 			}
 		}
-	}
+	} // end if (controller && (this.placemarkLatitudeProperty != '') && (this.placemarkLongitudeProperty != ''))
 	
 	// array of polygon data
 	this._polygonData = [];
-	console.log(this._polygonData);
-	if (this.coordsJsFile && !this._polygonCoords){
+	
+	if (this.polygonCoordsJsFile && !this._polygonCoords){
 		this._polygonCoords = [];
 		loadCoordinates(this._polygonCoords);
 	}
 	
-	if (controller && (this.coordsProperty != '')){
+	if (controller && (this.polygonCoordsProperty != '')){
 		// get data from controller (make sure data is loaded)
 		var dims = controller.getDimensions();
 		
@@ -488,13 +645,13 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 			if (!invert){
 				for (var p = 0; p < seriesSize; p++){
 					var pname = controller.getPropertyName(p);
-					if (pname == this.coordsProperty){
+					if (pname == this.polygonCoordsProperty){
 						coordsCol = p;
 					}
-					if (pname == this.colorProperty){
+					if (pname == this.polygonColorProperty){
 						colorCol = p;
 					}
-					if (pname == this.fillOpacityProperty){
+					if (pname == this.polygonFillOpacityProperty){
 						foCol = p;
 					}
 					if (pname == this.isClickableProperty){
@@ -509,7 +666,7 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 			// each series corresponds to a poly
 			for (var n = 0; n < seriesCount; n++){
 				var color = 'purple';
-				var fo = this.fillOpacity;  // default opacity
+				var fo = this.polygonFillOpacity;  // default opacity
 				var isClickable = 1;
 				
 				var sname = controller.getLabel(n,labelDim);
@@ -523,16 +680,16 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 					if (titleCol >= 0) sname = controller.getData(titleCol,n);
 				}
 				else{
-					var coords = controller.getDataByName(this.coordsProperty,n);
-					if (this.colorProperty != '') color = controller.getDataByName(this.colorProperty,n);
-					if (this.fillOpacityProperty != '') fo = controller.getDataByName(this.fillOpacityProperty,n);
+					var coords = controller.getDataByName(this.polygonCoordsProperty,n);
+					if (this.polygonColorProperty != '') color = controller.getDataByName(this.polygonColorProperty,n);
+					if (this.polygonFillOpacityProperty != '') fo = controller.getDataByName(this.polygonFillOpacityProperty,n);
 					if (this.isClickableProperty != '') isClickable = controller.getDataByName(this.isClickableProperty,n);
 					if (this.polygonTitleProperty != '') sname = controller.getDataByName(this.polygonTitleProperty,n);
 				}
 				
-				if (!fo) fo = this.fillOpacity;  // default opacity
+				if (!fo) fo = this.polygonFillOpacity;  // default opacity
 
-				if (this.coordsJsFile) coords = this._polygonCoords[coords];
+				if (this.polygonCoordsJsFile) coords = this._polygonCoords[coords];
 				
 				if (!coords) continue;
 				
@@ -565,29 +722,13 @@ Internal method: acquire data for this view and store a copy in a local cache.</
 				};
 			}
 		}
-	}
-]]></Implementation>
-</Method>
-
-<Method name="notifyViewHandler">
-<Description>
-Notification that the dataController associated with this dataView has raised an event.</Description>
-<FormalSpec>reason,data1,data2,data3</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	switch(reason) {
-		case 'dataChange':
-			this.onApplyFilters(true);		
-		case 'modelChange':
-			// some change in dataController
-			this.acquireData();
-			this.syncPlacemarks();
-			this.syncPolygons();
-			break;
-		
-		case 'seriesChange':
-			break;
+	}// end if (controller && (this.polygonCoordsProperty != ''))
+	
+	if (!this.polygonColorProperty){
+		if ($("#divSliderRangesPart").is(":visible") == true){
+			this.getSliderData().isChanged = false;
+			this.closeSlider();
+		}
 	}
 ]]></Implementation>
 </Method>
@@ -612,6 +753,9 @@ Client-side method to render control.</Description>
 
 <Method name="initMap">
 <Description>
+
+MAP Methods ---------------------------------------------------------------------------------------------
+
 Initialize the map</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
@@ -621,9 +765,6 @@ Initialize the map</Description>
 	
 	// test if we have not been rendered yet
 	if (mapDiv == null) return;
-	
-	mapDiv.style.height = "600px";	
-	mapDiv.style.width = "1300px";
 	
  	if (('undefined' == typeof ymaps) || ('undefined' == typeof ymaps.Map)) {
 		mapDiv.innerHTML = $$$Text('Unable to load yandex map api.');
@@ -649,7 +790,8 @@ Initialize the map</Description>
 	this._mapObject = new ymaps.Map(mapDiv, mapOptions);
     this._mapObject.behaviors.enable('scrollZoom',{smooth: false});
     this._mapObject.controls.add('zoomControl',{smooth: false});
-		
+    this._mapObject.controls.add(new ymaps.control.TypeSelector(['yandex#map', 'yandex#satellite', 'yandex#hybrid']));
+    	
 	// array of placemarks
 	this._placemarks = [];
 	
@@ -668,34 +810,35 @@ Initialize the map</Description>
             }
         });
         
-    var duPosition = {left: '5px', top: '5px'};
+    var duPosition = {left: '5px', top: '10px'};
     if (this.drillUpButtonPosition == "bottom"){
-    	duPosition = {left: '5px', bottom: '5px'};
+    	duPosition = {left: '5px', bottom: '10px'};
     }
-    
     this._mapObject.controls.add(drillUpActionComponent, { float: 'none', position: duPosition });
 
-	// create slider range
-    var sliderComponent = new ymaps.control.Button({
-            options: {
-                layout: ymaps.templateLayoutFactory.createClass(""+
-                "<div id='divSlider'>" + 
-        		"    <div id='divSliderButtonsPart'>" +
-        		"        <input id='btnOpenSlider'  type='button' value='Изменить диапазон'  onclick='zenPage.getComponentById(\"" + this.id + "\").openSlider();'/>" +
-        		"        <input id='btnCloseSlider' type='button' value='Сохранить диапазон' onclick='zenPage.getComponentById(\"" + this.id + "\").closeSlider();'/>" + 
-        		"    </div>" + 
-        		"    <div id='divSliderRangesPart'>" + 
-        		"        <input id='inputSliderMinValue' type='text' readonly='true' title='Минимальное значение параметра'/>" +  
-        		"        <input id='inputSliderValues'   type='text' readonly='true' title='Границы диапазона'/>" + 
-        		"        <input id='inputSliderMaxValue' type='text' readonly='true' title='Максимальное значение параметра'/>" + 
-        		"        <div id='slider-range' widgetid=\"" + this.id + "\">" + 
-        		"        </div>" + 
-        		"    </div>" +
-                "</div>")
-            }
-        });
-        
-    this._mapObject.controls.add(sliderComponent, { float: 'right'});
+	
+	// Create slider range if we need tool for change color
+	if (!this.polygonColorProperty){
+	    var sliderComponent = new ymaps.control.Button({
+	            options: {
+	                layout: ymaps.templateLayoutFactory.createClass(""+
+	                "<div id='divSlider'>" + 
+	        		"    <div id='divSliderButtonsPart'>" +
+	        		"        <input id='btnOpenSlider'  type='button' value='Изменить диапазон'  onclick='zenPage.getComponentById(\"" + this.id + "\").openSlider();'/>" +
+	        		"        <input id='btnCloseSlider' type='button' value='Сохранить диапазон' onclick='zenPage.getComponentById(\"" + this.id + "\").closeSlider();'/>" + 
+	        		"    </div>" + 
+	        		"    <div id='divSliderRangesPart'>" + 
+	        		"        <input id='inputSliderMinValue' type='text' readonly='true' title='Минимальное значение параметра'/>" +  
+	        		"        <input id='inputSliderValues'   type='text' readonly='true' title='Границы диапазона'/>" + 
+	        		"        <input id='inputSliderMaxValue' type='text' readonly='true' title='Максимальное значение параметра'/>" + 
+	        		"        <div id='slider-range' widgetid=\"" + this.id + "\">" + 
+	        		"        </div>" + 
+	        		"    </div>" +
+	                "</div>")
+	            }
+	        });    
+    	this._mapObject.controls.add(sliderComponent, { float: 'right'});
+	}
 ]]></Implementation>
 </Method>
 
@@ -708,8 +851,26 @@ Return the google map API object used by the map view.</Description>
 ]]></Implementation>
 </Method>
 
+<Method name="openBallonAtPosition">
+<Description>
+Show an ballon at the specified position.</Description>
+<FormalSpec>position,content</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var map = this.getMapObject();
+	
+	if (map && position){
+		map.balloon.open(position, {contentBody: content});
+	}
+]]></Implementation>
+</Method>
+
 <Method name="addPlacemark">
 <Description><![CDATA[
+
+PLACEMARK Methods ---------------------------------------------------------------------------------------
+
 Add a placemark to the map at given coordinates.<br/>
 <var>id</var> is a user-defined identifier associated with the placemark.<br/>
 Returns the placemark object.]]></Description>
@@ -734,16 +895,14 @@ Returns the placemark object.]]></Description>
 
 	// add to list
 	placemark._id = id;
+	placemark.clickable = (isClickable == 1);
 	placemark.data = data;
 	
 	var index = this._placemarks.length;
 	this._placemarks[index] = placemark;
 	
-	var code = new Function('zenPage.getComponent('+this.index+').placemarkEventHandler("'+index+'", event);');
-	placemark.events.add("click",code);
-	
-	code = new Function('zenPage.getComponent('+this.index+').placemarkEventHandler("'+index+'", event);');
-	placemark.events.add("contextmenu",code);
+	placemark.events.add("click", new Function('zenPage.getComponent(' + this.index + ').placemarkEventHandler("' + index + '", "click");'));	
+	placemark.events.add("contextmenu", new Function('zenPage.getComponent(' + this.index + ').placemarkEventHandler("' + index + '", "contextmenu");'));
 	
 	return placemark;
 ]]></Implementation>
@@ -762,107 +921,21 @@ Get placemark from array by index</Description>
 
 <Method name="placemarkEventHandler">
 <Description>
-Click by placemark </Description>
+Handler for placemark events by type </Description>
 <Internal>1</Internal>
-<FormalSpec>index,event</FormalSpec>
+<FormalSpec>index,eventType</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
 	var placemark = this.getPlacemark(index);
 	if (!placemark) return;
 	
-	switch(event.type){
+	switch(eventType){
 		case 'click':
 			zenInvokeCallbackMethod(this.onclickplacemark, this, 'onclickplacemark', 'placemark', placemark);
 			break;	
 		case 'contextmenu':
-			zenInvokeCallbackMethod(this.onrightclickplacemark, this, 'onrightclickplacemark', 'placemark', placemark);
-			break;
-	}
-]]></Implementation>
-</Method>
-
-<Method name="addPolygon">
-<Description><![CDATA[
-Add a polygon to the map at given coordinates.<br/>
-<var>id</var> is a user-defined identifier associated with the polygon.<br/>
-Returns the polygon object.]]></Description>
-<FormalSpec>id,coords,color,fo,isClickable,title,data</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var map = this.getMapObject();
-    if (!map) return null;
-
-	if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
-		var colorAr = color.substring(4, color.length - 1).split(",");
-		color = "rgb(" + String(parseFloat(colorAr[0])).split(".")[0] + "," + String(parseFloat(colorAr[1])).split(".")[0] + "," + String(parseFloat(colorAr[2])).split(".")[0] + ")";
-	}
-	
-    var polygon = new ymaps.Polygon(
-     		/* geometry */
-     		coords, 
-     		/* properties */
-     		{
-	     		hintContent: title
-	     	},
-	     	/* options */ 
-	     	{
-	     		fillColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
-        	 	fillOpacity: fo,
-        	 	strokeColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
-        	 	strokeOpacity: (this.strokeOpacity ? this.strokeOpacity : 0.5),
-        	 	strokeWeight: (this.strokeWeight ? this.strokeWeight : 3),
-    		});
-
-   	// add to list
-	polygon._id = id;
-	polygon.data = data;
-		
-	var index = this._polygons.length;
-	this._polygons[index] = polygon;
-	
-	polygon.events.add("click", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
-	polygon.events.add("contextmenu", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
-	polygon.events.add("mouseenter", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
-	polygon.events.add("mouseleave", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
-	
-	return polygon;
-]]></Implementation>
-</Method>
-
-<Method name="getPolygon">
-<Description>
-Get polygon from array by index</Description>
-<Internal>1</Internal>
-<FormalSpec>index</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[	return this._polygons ? this._polygons[index] : null;
-]]></Implementation>
-</Method>
-
-<Method name="polygonEventHandler">
-<Description>
- </Description>
-<Internal>1</Internal>
-<FormalSpec>index,event</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var polygon = this.getPolygon(index);
-	if (!polygon) return;
-
-	switch(event.get('type')){
-		case 'click':
-			zenInvokeCallbackMethod(this.onclickpolygon, this, 'onclickpolygon', 'polygon', polygon, 'position', event.get('coords'));
-			break;	
-		case 'contextmenu':
-			zenInvokeCallbackMethod(this.onrightclickpolygon, this, 'onrightclickpolygon', 'polygon', polygon, 'position', event.get('coords'));
-			break;		
-		case 'mouseenter':
-			break;
-		case 'mouseleave':
+			zenInvokeCallbackMethod(this.oncontextmenuplacemark, this, 'oncontextmenuplacemark', 'placemark', placemark);
 			break;
 	}
 ]]></Implementation>
@@ -891,145 +964,15 @@ Internal method: sync placemarks to data from controller.</Description>
                 }
                 
 				var placemark = this.addPlacemark(n, md.latitude, md.longitude, md.title, md.isClickable, md.icon, md.data);
-				if (placemark && md.title){
+				if (placemark){
 					map.geoObjects.add(placemark); 
+					zenInvokeCallbackMethod(this.onaddplacemark, this, 'onaddplacemark', 'placemark', placemark);
 				}
 			}
 		}
 	}
 	catch(ex) {
 		alert('Error in syncPlacemarks ' + ex.message);
-	}
-]]></Implementation>
-</Method>
-
-<Method name="syncPolygons">
-<Description>
-Internal method: sync polygons to data from controller.</Description>
-<Internal>1</Internal>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	this.clearPolygons();	
-	
-	var map = this.getMapObject();
-	var controller = this.getController();
-	
-	if (!map || !controller || !this._polygonData) return;
-	
-	try {
-		// Максимальное и минимальное значение из выборки
-		var minMaxData = {min: null, max: null};
-		this.setMinMaxPolygonValue(minMaxData, 'Value');
-	
-		var sliderData = this.getSliderData();
-			
-		if($("#divSliderRangesPart").is(":visible") == false){
-			// Границы для этой выборки и имя у.е. - min;max;y.e
-			var bordersData = this.GetBordersData(this._polygonData[0].data.ParameterId, this._polygonData[0].data.Level, sliderData.getGuid())
-			console.log(bordersData);
-			sliderData.setParameterId(this._polygonData[0].data.ParameterId);
-			sliderData.setLevel(this._polygonData[0].data.Level);
-			sliderData.setMin(minMaxData.min);
-			sliderData.setMax(minMaxData.max);
-			sliderData.setValues(bordersData.minValue, bordersData.maxValue);
-			sliderData.setUnitName(bordersData.unitName);
-			sliderData.resetChanges();			
-		}
-	
-		for (var n = 0; n < this._polygonData.length; n++){
-			var md = this._polygonData[n];
-			if (md){	
-				// Имя полигона + значение для него, значение разбивается по тройкам
-				md.title = md.data.Name + ' (' + this.beatNumber(md.data['Value']) + ' ' + sliderData.getUnitName() + ')';
-				md.color = this.getColor(sliderData.getValues()[0], sliderData.getValues()[1], md.data['Value']);
-					
-				var poly = this.addPolygon(n, md.coords, md.color, md.fo, md.isClickable, md.title, md.data);
-				
-				if (poly){ 
-					map.geoObjects.add(poly);
-					zenInvokeCallbackMethod(this.onaddpolygon, this, 'onaddpolygon', 'polygon', poly);
-				}	
-			}
-		}
-	}
-	catch(ex) {
-		alert('Error in syncPolygons ' + ex.message);
-	}
-]]></Implementation>
-</Method>
-
-<Method name="getColor">
-<Description>
-Calculate color for polygon</Description>
-<FormalSpec>min,max,value</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	if (!value) return 'rgb(0,0,0)';
-	
-	// Крайнии границы: красный и зеленый, цвет для середины - желтый
-	var middle = (max + min) / 2;
-	
-	if (value <= middle){
-        var redPart = (value - min) / (middle - min);
-        return "rgb(" + Math.round(255 * redPart) + ",255, 0)";
-    }
-    else{
-        var greenPart = (max - value) / (max - middle);
-        return "rgb(255," + Math.round(255 * greenPart) + ", 0)";
-    }
-]]></Implementation>
-</Method>
-
-<Method name="setMinMaxPolygonValue">
-<Description>
-Search and set min|max values from all polygons.</Description>
-<FormalSpec>minMaxData,nameValueProperty</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	if (this._polygonData.length == 0 || !nameValueProperty)
-		return;
-	
-	minMaxData.min = parseFloat(this._polygonData[0].data[nameValueProperty]); 
-	minMaxData.max = parseFloat(this._polygonData[0].data[nameValueProperty]);
-	
-	for (var n = 1; n < this._polygonData.length; n++){
-		var value = parseFloat(this._polygonData[n].data[nameValueProperty]);
-		if (minMaxData.min > value)
-			minMaxData.min = value;
-		else if (minMaxData.max < value)
-			minMaxData.max = value;
-	}
-]]></Implementation>
-</Method>
-
-<Method name="getControl">
-<Description>
-Obtain a reference to a filter (or any other widget control).</Description>
-<FormalSpec>ind</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	console.log('getControl(ind)');
-	//------------------------------
-		
-    return zenPage.getComponent(this.parent.parent.controlIndices[ind]);
-]]></Implementation>
-</Method>
-
-<Method name="openBallonAtPosition">
-<Description>
-Show an info window at the specified position.</Description>
-<FormalSpec>position,content</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var map = this.getMapObject();
-	
-	if (map && position){
-		map.balloon.open(position, {contentBody: content});
 	}
 ]]></Implementation>
 </Method>
@@ -1048,10 +991,189 @@ Internal method: clear placemarks from map.</Description>
 				this._mapObject.geoObjects.remove(this._placemarks[n]);
 			}
 		}
+		
 		this._placemarks = [];
 	}
 	catch(ex) {
 		alert('Error in clearPlacemarks ' + ex.message);
+	}
+]]></Implementation>
+</Method>
+
+<Method name="addPolygon">
+<Description><![CDATA[
+
+POLYGON Methods -----------------------------------------------------------------------------------------
+
+Add a polygon to the map at given coordinates.<br/>
+<var>id</var> is a user-defined identifier associated with the polygon.<br/>
+Returns the polygon object.]]></Description>
+<FormalSpec>id,coords,color,fo,isClickable,title,data</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var map = this.getMapObject();
+    if (!map) return null;
+
+	if (color.substring(0, 4) === "rgb(" && color.indexOf(")") == (color.length - 1) && color.indexOf(".") > -1){
+		var colorAr = color.substring(4, color.length - 1).split(",");
+		color = "rgb(" + String(parseFloat(colorAr[0])).split(".")[0] + "," + String(parseFloat(colorAr[1])).split(".")[0] + "," + String(parseFloat(colorAr[2])).split(".")[0] + ")";
+	}
+	
+    var polygon = new ymaps.Polygon(
+     		/* geometry */
+     		coords, 
+     		/* properties */
+     		{
+	     		hintContent: title
+	     	},
+	     	/* options */ 
+	     	{
+	     		fillColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        	 	fillOpacity: fo,
+        	 	strokeColor: (color.substring(0, "hsv2rgb".length) === "hsv2rgb" ? eval(color) : color),
+        	 	strokeOpacity: (this.polygonStrokeOpacity ? this.polygonStrokeOpacity : 0.5),
+        	 	strokeWeight: (this.polygonStrokeWeight ? this.polygonStrokeWeight : 3),
+    		});
+
+   	// add to list
+	polygon._id = id;
+	polygon.defaultFO = fo;
+	polygon.clickable = (isClickable == 1);
+	polygon.data = data;
+		
+	var index = this._polygons.length;
+	this._polygons[index] = polygon;
+	
+	polygon.events.add("click", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
+	polygon.events.add("contextmenu", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
+	polygon.events.add("mouseenter", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
+	polygon.events.add("mouseleave", new Function('event', 'zenPage.getComponent(' + this.index + ').polygonEventHandler("' + index + '", event);'));
+	
+	return polygon;
+]]></Implementation>
+</Method>
+
+<Method name="getPolygon">
+<Description>
+Get polygon from array by index</Description>
+<Internal>1</Internal>
+<FormalSpec>index</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	return this._polygons ? this._polygons[index] : null;
+]]></Implementation>
+</Method>
+
+<Method name="polygonEventHandler">
+<Description>
+Handler for polygon events by type </Description>
+<Internal>1</Internal>
+<FormalSpec>index,event</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var polygon = this.getPolygon(index);
+	if (!polygon) return;
+
+	switch(event.get('type')){
+		case 'click':
+			zenInvokeCallbackMethod(this.onclickpolygon, this, 'onclickpolygon', 'polygon', polygon, 'position', event.get('coords'));
+			break;	
+		case 'contextmenu':
+			zenInvokeCallbackMethod(this.oncontextmenupolygon, this, 'oncontextmenupolygon', 'polygon', polygon, 'position', event.get('coords'));
+			break;
+		case 'mouseenter':{
+				if (polygon.clickable){ 
+					polygon.options.set({fillOpacity: (this.polygonHoverOpacity ? this.polygonHoverOpacity : 0.35)});		
+				}
+				break;
+			}
+			break;
+		case 'mouseleave':{
+				if (polygon.clickable){ 		
+					polygon.options.set({fillOpacity: polygon.defaultFO});		
+				}
+				break;
+			}
+			break;
+	}
+]]></Implementation>
+</Method>
+
+<Method name="syncPolygons">
+<Description>
+Internal method: sync polygons to data from controller.</Description>
+<Internal>1</Internal>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	this.clearPolygons();	
+	
+	var map = this.getMapObject();
+	var controller = this.getController();
+	
+	if (!map || !controller || !this._polygonData || this._polygonData.length == 0) 
+		return;
+	
+	try {
+		// Min and max value from all polygons data for calculate color 
+		var minValue = 0, maxValue = 0;
+		
+		if (!this.polygonColorProperty){
+			minValue = parseFloat(this._polygonData[0].data['Value']); 
+			if (isNaN(minValue)) 
+				minValue = 0;
+			
+			maxValue = minValue;
+			
+			for (var n = 1; n < this._polygonData.length; n++){
+				var nValue = parseFloat(this._polygonData[n].data['Value']);
+				if (isNaN(nValue)) nValue = 0;
+				
+				if (minValue > nValue)
+					minValue = nValue;
+				else if (maxValue < nValue)
+					maxValue = nValue;
+			}
+		
+			// Load and set borders data for slider range
+			if (!this.polygonColorProperty){
+				var sliderData = this.getSliderData();
+				
+				var bordersData = this.LoadBordersData(this._polygonData[0].data.ParameterId, this._polygonData[0].data.Level, sliderData.getGuid())
+				sliderData.setParameterId(this._polygonData[0].data.ParameterId);
+				sliderData.setLevel(this._polygonData[0].data.Level);
+				sliderData.setMin(minValue);
+				sliderData.setMax(maxValue);
+				sliderData.setValues(bordersData.minValue, bordersData.maxValue);
+				sliderData.setUnitName(bordersData.unitName);
+				sliderData.isChanged = false;		
+					
+				minValue = sliderData.getValues()[0];
+				maxValue = sliderData.getValues()[1];
+			}
+		}
+		
+		
+		for (var n = 0; n < this._polygonData.length; n++){
+			var md = this._polygonData[n];
+			if (md){	
+				if (!this.polygonColorProperty){
+					md.color = this.getPolygonColor(minValue, maxValue, md.data['Value']);
+				}
+					
+				var poly = this.addPolygon(n, md.coords, md.color, md.fo, md.isClickable, md.title, md.data);
+				
+				if (poly){ 
+					map.geoObjects.add(poly);
+					zenInvokeCallbackMethod(this.onaddpolygon, this, 'onaddpolygon', 'polygon', poly);
+				}	
+			}
+		}
+	}
+	catch(ex) {
+		alert('Error in syncPolygons ' + ex.message);
 	}
 ]]></Implementation>
 </Method>
@@ -1079,305 +1201,32 @@ Internal method: clear polygons from map.</Description>
 ]]></Implementation>
 </Method>
 
-<Method name="getFilterStateArray">
+<Method name="getPolygonColor">
 <Description>
-Get the array of filter state information for the widget.</Description>
+Calculate color for polygon</Description>
+<FormalSpec>min,max,value</FormalSpec>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
-	console.log('getFilterStateArray()');
-	//------------------------------
+	if (!value || !min || !max) return 'rgb(255,255,255)';
 	
+	// Left color - red, right color - green. In the middle - yellow color
+	var middle = (max + min) / 2;
 	
-	return this.parent.parent.getFilterStateArray();
-]]></Implementation>
-</Method>
-
-<Method name="panToAddress">
-<Description>
-Invoke the google geocoder api to lookup an address string and move the map to view it.
-Applications that call this are responsible for adhering to the google geocoder api terms of use.</Description>
-<FormalSpec>address</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	console.log('panToAddress(address)');
-	//------------------------------
-	
-	
-	if (('undefined' == typeof yandex)||('undefined' == typeof yandex.maps)) {
-		return '';
-	}
-
-	var callback = new Function('results','status','zenPage.getComponent('+this.index+').geocodeAddressHandler(results,status)');
-	var geocoder = new google.maps.Geocoder();
-	geocoder.geocode({ 'address': address}, callback);
-]]></Implementation>
-</Method>
-
-<Method name="geocodeAddressHandler">
-<Description>
-Callback for geocoder API.</Description>
-<Internal>1</Internal>
-<FormalSpec>results,status</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	console.log('geocodeAddressHandler(results, status)');
-	//------------------------------
-		
-	if (status == google.maps.GeocoderStatus.OK) {
-		var map = this.getMapObject();
-		if (map) {
-			map.setCenter(results[0].geometry.location);
-		}
-	}
-	else {
-		alert("Address not found: " + status);
-	}
-]]></Implementation>
-</Method>
-
-<Method name="%DrawHTML">
-<Implementation><![CDATA[
-	
-	// This causes ZEN to render this component on the client.
-	set ..renderFlag = ..renderFlag + 1
-	
-	// copy ..settings into properties
-	#dim propName As %String = $order(..settings(""))
-	while (propName '= "")
-	{
-		if ("" '= $get(..settings(propName)))
-			try
-			{
-				set $property($this, propName) = ..settings(propName)
-			}
-			catch {}
-
-		set propName = $order(..settings(propName))
-	}
-	
-	&html<
-	
-	<script type="text/javascript">
-	
-	
-	
-function hsv2rgb(h,s,v) 
-	{
-		// Adapted from http://www.easyrgb.com/math.html
-		// hsv values = 0 - 1, rgb values = 0 - 255
-		var r, g, b;
-		var RGB = new Array();
-		if(s == 0)
-		{
-		  RGB['red']=RGB['green']=RGB['blue']=Math.round(v*255);
-		}
-		else
-		{
-		  var var_h = h * 6;  // h must be < 1
-		  if (var_h == 6) var_h = 0;
-		  var var_i = Math.floor( var_h );
-		  var var_1 = v*(1-s);
-		  var var_2 = v*(1-s*(var_h-var_i));
-		  var var_3 = v*(1-s*(1-(var_h-var_i)));
-		  if (var_i == 0)
-		  {
-		    var_r = v; 
-		    var_g = var_3; 
-		    var_b = var_1;
-		  }
-		  else if (var_i == 1)
-		  {
-		    var_r = var_2;
-		    var_g = v;
-		    var_b = var_1;
-		  }
-		  else if (var_i == 2)
-		  {
-		    var_r = var_1;
-		    var_g = v;
-		    var_b = var_3
-		  }
-		  else if (var_i == 3)
-		  {
-		    var_r = var_1;
-		    var_g = var_2;
-		    var_b = v;
-		  }
-		  else if (var_i == 4)
-		  {
-		    var_r = var_3;
-		    var_g = var_1;
-		    var_b = v;
-		  }
-		  else
-		  {
-		    var_r = v;
-		    var_g = var_1;
-		    var_b = var_2
-		  }
-		  RGB['red'] = Math.round(var_r * 255);
-		  RGB['green'] = Math.round(var_g * 255);
-		  RGB['blue'] = Math.round(var_b * 255);
-		}
-		return '#' + RGB['red'].toString(16) + RGB['green'].toString(16) + RGB['blue'].toString(16);
-	};
-	</script>>
-	
-	if (..coordsJsFile '= "")
-	{
-		&html<<script type='text/javascript' src='#(..coordsJsFile)#'></script>>
-	}
-	
-	
-	// JQUERY Libraries
-	&html<
-		  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	      <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>>
-]]></Implementation>
-</Method>
-
-<Method name="onApplyFilters">
-<Internal>1</Internal>
-<FormalSpec>refresh</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-
-	zenInvokeCallbackMethod(this.onapplyfilters,this,'onapplyfilters','refresh',refresh);
-]]></Implementation>
-</Method>
-
-<Method name="drillDown">
-<Description>
-Perform a drilldown</Description>
-<Internal>1</Internal>
-<FormalSpec>title,latLng,zoom,data</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	console.log('portlet drillDown');
-	
-	var map = this.getMapObject();
-	if (!map) return;
-	
-	this._prevZoom.push(map.getZoom());
-	this._prevCenter.push(map.getCenter());
-	
-	map.setZoom(parseInt(zoom));
-	map.setCenter(latLng);
-	
-	this._drillDownTitle.push(title);
-	this.setDrillDownTitle(title);
-	
-	zenInvokeCallbackMethod(this.ondrilldown, this, 'ondrilldown', 'data', data);
-]]></Implementation>
-</Method>
-
-<Method name="setDrillDownTitle">
-<Internal>1</Internal>
-<FormalSpec>title</FormalSpec>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var du = document.getElementById(this.id + '_drillUpActionComponent')
-	du.innerHTML = '';
-	
-	if (!title)	return;
-	
-	var divBtn = document.createElement('div');
-	var portlet = this;
-	divBtn.onclick = function(){portlet.drillUp()};
-	divBtn.appendChild(document.createTextNode('<<  ' + 'Назад'));
-	divBtn.style.cursor = 'pointer';
-	divBtn.style.border = 'solid 1px #000000';
-	divBtn.style.color = '#ffffff';
-	divBtn.style.backgroundColor = '#356B8D';
-	divBtn.style.MozBoxShadow = '2px 2px 4px #7f7f7f';
-	divBtn.style.boxShadow = '2px 2px 4px #7f7f7f';
-	divBtn.style.whiteSpace = 'nowrap';
-	divBtn.style.font = 'icon';
-	divBtn.style.padding = '2px 8px'; 
-	divBtn.style.display = 'block';
-	
-	if (navigator.userAgent.indexOf("Safari")>=0 || navigator.userAgent.indexOf("Chrome")>=0){
-		divBtn.style.fontFamily = "Tahoma,sans-serif";
-		divBtn.style.fontSize = "13px";
-	}
-	
-	
-	var divTitle = document.createElement('div');
-	divTitle.appendChild(document.createTextNode(title));
-	divTitle.style.border = 'solid 1px #000000';
-	divTitle.style.color = '#000000';
-	divTitle.style.MozBoxShadow = '2px 2px 4px #7f7f7f';
-	divTitle.style.boxShadow = '2px 2px 4px #7f7f7f';
-	divTitle.style.whiteSpace = 'nowrap';
-	divTitle.style.font = 'icon';
-	divTitle.style.fontWeight = 'bold';
-	divTitle.style.padding = '2px 8px'; 
-	divTitle.style.display = 'block';
-	
-	if (navigator.userAgent.indexOf("MSIE")>=0){
-		divTitle.style.backgroundColor = 'white';
-	}
-	else{
-		divTitle.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-	}
-	
-	if (navigator.userAgent.indexOf("Safari")>=0 || navigator.userAgent.indexOf("Chrome")>=0){
-		divTitle.style.fontFamily = "Tahoma,sans-serif";
-		divTitle.style.fontSize = "13px";
-	}
-	
-	du.style.display = 'flex';
-	du.appendChild(divBtn);
-	du.appendChild(divTitle);
-]]></Implementation>
-</Method>
-
-<Method name="centerChangedHandler">
-<Internal>1</Internal>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	//console.log('test 32');
-	//if (this._drillDownTitle.length > 0) this._drillDownTitle[this._drillDownTitle.length - 1].draw();
-]]></Implementation>
-</Method>
-
-<Method name="drillUp">
-<Description>
-Restores map parameters (center, zoom and "drilldown title") to their state before drilldown was performed</Description>
-<Internal>1</Internal>
-<Language>javascript</Language>
-<ClientMethod>1</ClientMethod>
-<Implementation><![CDATA[
-	var map = this.getMapObject();
-	if (!map) return;
-	
-	if (this._drillDownTitle.length > 0){
-		this._drillDownTitle.pop();
-		this.setDrillDownTitle(this._drillDownTitle[this._drillDownTitle.length - 1]);
-	}
-	
-	if (this._prevZoom.length > 0){
-		map.setZoom(this._prevZoom[this._prevZoom.length - 1]);
-		this._prevZoom.pop();
-	}
-		
-	if (this._prevCenter.length > 0){
-		map.setCenter(this._prevCenter[this._prevCenter.length - 1]);
-		this._prevCenter.pop();
-	}
-	
-	zenInvokeCallbackMethod(this.ondrillup, this, 'ondrillup');
+	if (value <= middle){
+        var redPart = (value - min) / (middle - min);
+        return "rgb(" + Math.round(255 * redPart) + ",255, 0)";
+    }
+    else{
+        var greenPart = (max - value) / (max - middle);
+        return "rgb(255," + Math.round(255 * greenPart) + ", 0)";
+    }
 ]]></Implementation>
 </Method>
 
 <Method name="getSliderData">
+<Description>
+Get slider data object. Object stores information about borders.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
@@ -1421,7 +1270,7 @@ Restores map parameters (center, zoom and "drilldown title") to their state befo
 							return this._max;
 						},
 						setValues: function(min, max){
-							this._isChanged = true;
+							this.isChanged = true;
 							
 							min = Math.floor(min ? parseInt(min) : 0);
 							min = (min == 0 && this.getMin()) ? this.getMin(): min;
@@ -1433,12 +1282,6 @@ Restores map parameters (center, zoom and "drilldown title") to their state befo
 						},
 						getValues: function(){
 							return this._values;
-						},
-						isChanged: function(){
-							return this._isChanged;
-						},
-						resetChanges: function(){
-							this._isChanged = false;
 						},
 						getStep: function(){
 							var step = 1;
@@ -1476,6 +1319,8 @@ Restores map parameters (center, zoom and "drilldown title") to their state befo
 </Method>
 
 <Method name="openSlider">
+<Description>
+Open slider dialog</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
@@ -1499,11 +1344,18 @@ Restores map parameters (center, zoom and "drilldown title") to their state befo
 		min: minValue,
 		max: maxValue,
 		values: values,
-		stop: function(event, ui){
-			portlet.getSliderData().setValues(ui.values[0], ui.values[1]);
-			portlet.syncPolygons();
-		},
 		slide: function(event, ui){
+			// Change current borders and color of polygons
+			var sliderData = portlet.getSliderData();
+			sliderData.setValues(ui.values[0], ui.values[1]);
+			
+			for(var n=0; n < portlet._polygons.length; n++){
+				var poly = portlet._polygons[n];
+				var color = portlet.getPolygonColor(ui.values[0], ui.values[1], poly.data['Value']);
+				poly.options.set("fillColor", color);
+				poly.options.set("strokeColor", color);
+			}
+			
 			$("#inputSliderValues" ).val(ui.values[0] + " - " + ui.values[1] + " " + unitName);
 		}
 	});
@@ -1515,6 +1367,8 @@ Restores map parameters (center, zoom and "drilldown title") to their state befo
 </Method>
 
 <Method name="closeSlider">
+<Description>
+Close slider dialog, save borders</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
@@ -1525,12 +1379,162 @@ Restores map parameters (center, zoom and "drilldown title") to their state befo
 	var sliderData = this.getSliderData();
 	
 	// Save changes
-	if (sliderData.isChanged()){
-		var res = this.SaveBorders(sliderData.getParameterId(), sliderData.getLevel(), sliderData.getGuid(), sliderData.getValues()[0], sliderData.getValues()[1]);
+	if (sliderData.isChanged){
 		
-		if (res != 1) 
+		var res = this.SaveBorders(sliderData.getParameterId(), sliderData.getLevel(), sliderData.getGuid(), sliderData.getValues()[0], sliderData.getValues()[1]);
+		console.log('borders saved');
+		if (res != 1){ 
 			alert('Ошибка! Диапазон не сохранен.'+ '\n' + res);
+			return;
+		}
+		
+		sliderData.isChanged = false;
 	}
+]]></Implementation>
+</Method>
+
+<Method name="SaveBorders">
+<Description>
+Save borders for current level, parameter and parent region</Description>
+<FormalSpec>paramId:%String,level:%Integer,regionId:%String,min:%Integer,max:%Integer</FormalSpec>
+<ReturnType>%ZEN.Datatype.string</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+	set data = ##class(%ZEN.proxyObject).%New()
+	set data.parameterId = paramId
+	set data.level = level
+	set data.parentRegionId = regionId
+	set data.minValue = min
+	set data.maxValue = max
+	
+	quit $CLASSMETHOD($P(..polygonSaveBordersMethod,";",1),$P(..polygonSaveBordersMethod,";",2), data)
+]]></Implementation>
+</Method>
+
+<Method name="LoadBordersData">
+<Description>
+Get the minimum and maximum value, and unit name ("min;max;y.e")</Description>
+<FormalSpec>paramId:%String,level:%Integer,regionId:%String</FormalSpec>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+	set bordersData = ""
+	
+	try{
+		set data = ##class(%ZEN.proxyObject).%New()
+		set data.parameterId = paramId
+		set data.level = level
+		set data.parentRegionId = regionId
+	
+		set bordersData = $CLASSMETHOD($P(..polygonLoadBordersMethod,";",1),$P(..polygonLoadBordersMethod,";",2), data)
+	}
+	catch(ex){
+		set bordersData = ##class(%ZEN.proxyObject).%New()
+		set bordersData.minValue = 0
+		set bordersData.maxValue = 0
+		set bordersData.unitName = "-"
+	}
+	
+	quit bordersData
+]]></Implementation>
+</Method>
+
+<Method name="drillDown">
+<Description>
+
+COMMON Methods ------------------------------------------------------------------------------------------
+
+Perform a drilldown</Description>
+<Internal>1</Internal>
+<FormalSpec>title,latLng,zoom,data</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var map = this.getMapObject();
+	if (!map) return;
+	
+	this._prevZoom.push(map.getZoom());
+	this._prevCenter.push(map.getCenter());
+	
+	map.setZoom(parseInt(zoom));
+	map.setCenter(latLng);
+	
+	this._drillDownTitle.push(title);
+	this.setDrillDownTitle(title);
+	
+	zenInvokeCallbackMethod(this.ondrilldown, this, 'ondrilldown', 'data', data);
+]]></Implementation>
+</Method>
+
+<Method name="setDrillDownTitle">
+<Description>
+Set title to drillUp-button </Description>
+<Internal>1</Internal>
+<FormalSpec>title</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var du = document.getElementById(this.id + '_drillUpActionComponent')
+	du.innerHTML = '';
+	
+	if (!title)	return;
+	
+	var divBtn = document.createElement('div');
+	var portlet = this;
+	divBtn.onclick = function(){portlet.drillUp()};
+	divBtn.appendChild(document.createTextNode('<<  ' + 'Назад'));
+	divBtn.className = 'btnYandex';
+	divBtn.style.display = 'initial';
+	divBtn.style.borderRadius = '2px 0 0 2px';
+	divBtn.style.cursor = 'pointer';
+	
+	var divTitle = document.createElement('div');
+	divTitle.appendChild(document.createTextNode(title));
+	divTitle.className = 'btnYandex';
+	divTitle.style.display = 'initial';
+	divTitle.style.borderRadius = '0 2px 2px 0';
+	divTitle.style.background = 'none';
+	
+	if (navigator.userAgent.indexOf("MSIE")>=0){
+		divTitle.style.backgroundColor = 'white';
+		divBtn.style.display = 'inline';
+		divTitle.style.display = 'inline';
+	}
+	else{
+		divTitle.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+	}
+	
+	du.appendChild(divBtn);
+	du.appendChild(divTitle);
+]]></Implementation>
+</Method>
+
+<Method name="drillUp">
+<Description>
+Restores map parameters (center, zoom and "drilldown title") to their state before drilldown was performed</Description>
+<Internal>1</Internal>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var map = this.getMapObject();
+	if (!map) return;
+	
+	if (this._drillDownTitle.length > 0){
+		this._drillDownTitle.pop();
+		this.setDrillDownTitle(this._drillDownTitle[this._drillDownTitle.length - 1]);
+	}
+	
+	if (this._prevZoom.length > 0){
+		map.setZoom(this._prevZoom[this._prevZoom.length - 1]);
+		this._prevZoom.pop();
+	}
+		
+	if (this._prevCenter.length > 0){
+		map.setCenter(this._prevCenter[this._prevCenter.length - 1]);
+		this._prevCenter.pop();
+	}
+	
+	zenInvokeCallbackMethod(this.ondrillup, this, 'ondrillup');
 ]]></Implementation>
 </Method>
 
@@ -1567,52 +1571,6 @@ Get proxy object with addition information for object by id</Description>
 ]]></Implementation>
 </Method>
 
-<Method name="SaveBorders">
-<Description>
-Save borders for current level, parameter and parent region</Description>
-<FormalSpec>paramId:%String,level:%Integer,regionId:%String,min:%Integer,max:%Integer</FormalSpec>
-<ReturnType>%ZEN.Datatype.string</ReturnType>
-<ZenMethod>1</ZenMethod>
-<Implementation><![CDATA[
-	set data = ##class(%ZEN.proxyObject).%New()
-	set data.parameterId = paramId
-	set data.level = level
-	set data.parentRegionId = regionId
-	set data.minValue = min
-	set data.maxValue = max
-	
-	quit $CLASSMETHOD($P(..saveBordersMethod,";",1),$P(..saveBordersMethod,";",2), data)
-]]></Implementation>
-</Method>
-
-<Method name="GetBordersData">
-<Description>
-Get the minimum and maximum value, and unit name ("min;max;y.e")</Description>
-<FormalSpec>paramId:%String,level:%Integer,regionId:%String</FormalSpec>
-<ReturnType>%ZEN.proxyObject</ReturnType>
-<ZenMethod>1</ZenMethod>
-<Implementation><![CDATA[
-	set bordersData = ""
-	
-	try{
-		set data = ##class(%ZEN.proxyObject).%New()
-		set data.parameterId = paramId
-		set data.level = level
-		set data.parentRegionId = regionId
-	
-		set bordersData = $CLASSMETHOD($P(..getBordersMethod,";",1),$P(..getBordersMethod,";",2), data)
-	}
-	catch(ex){
-		set bordersData = ##class(%ZEN.proxyObject).%New()
-		set bordersData.minValue = 0
-		set bordersData.maxValue = 0
-		set bordersData.unitName = "-"
-	}
-	
-	quit bordersData
-]]></Implementation>
-</Method>
-
 <XData name="Style">
 <Data><![CDATA[
 <style type="text/css">
@@ -1629,18 +1587,26 @@ Get the minimum and maximum value, and unit name ("min;max;y.e")</Description>
 	display: none;
 }
 
-#btnOpenSlider, #btnCloseSlider {
-	border: 1px solid rgb(0, 0, 0);
-	color: rgb(255, 255, 255);
-	background-color: rgb(53, 107, 141);
-	box-shadow: rgb(127, 127, 127) 2px 2px 4px;
-	white-space: nowrap;
-	font: icon;
-	font-family: Tahoma, sans-serif;
-	font-size: 13px;
-	padding: 1px 8px;
-	visibility: visible;
-	
+#btnOpenSlider, #btnCloseSlider, .btnYandex{
+border: 1px solid rgb(139, 139, 139);
+color: #333;
+background-color: rgb(255, 255, 255);
+box-shadow: 0 1px 0 rgba(0,0,0,.1);
+white-space: nowrap;
+font-family: Arial, sans-serif;
+font-size: 13px;
+padding: 1px 8px;
+visibility: visible;
+
+background: #fff;
+background: -webkit-linear-gradient(top,#fff 0,#eee 100%);
+background: -moz-linear-gradient(top,#fff 0,#eee 100%);
+background: -o-linear-gradient(top,#fff 0,#eee 100%);
+background: linear-gradient(to bottom,#fff 0,#eee 100%);
+border-radius: 2px;
+
+padding: 5px;
+margin: 0px;
 
 }
 
@@ -1654,11 +1620,12 @@ Get the minimum and maximum value, and unit name ("min;max;y.e")</Description>
 #divSliderRangesPart{
 	display: none;
 	background-color: white;
+	box-shadow: rgb(127, 127, 127) 2px 2px 7px;
 	border: 1px solid gray;
-	padding: 5px 5px 10px 5px;
-	border-radius: 5px;
-	position: relative;
-	top: 25px;
+	padding: 5px 20px 10px 20px;
+	border-radius: 2px;
+	float: left;
+	margin-left: 10px;
 }
 
 #slider-range{
@@ -1674,6 +1641,9 @@ Get the minimum and maximum value, and unit name ("min;max;y.e")</Description>
 	padding: 0;
 	margin: 0;
 	width: 33%;
+	color: #333;
+	font-family: Arial, sans-serif;
+	font-size: 13px;
 }
 
 #inputSliderMinValue{
