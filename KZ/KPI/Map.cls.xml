@@ -33,7 +33,6 @@ Source for Map widget</Description>
 <property name="SpecialIcon" columnNo="9"/>
 <property name="Value" columnNo="10"/>
 <property name="ParameterId" columnNo="11"/>
-<property name="Color" columnNo="12"/>
 
 <filter name="ParentGuid"/>
 <filter name="ParameterName" sql="SELECT Name FROM KZ.Parameter" defaultValue="0"/>
@@ -98,10 +97,14 @@ Return an SQL statement to execute.</Description>
 			}
 		}
 	
-
+	
+		if (pSQL = ""){
+			set pSQL = $replace(..GetStringFromXData("sqlKZRegion"), ":WHERECondition", "reg.HLevel=0 AND pv.Parameter='1'")
+		}
+	/*
 		if (pSQL = ""){
 			set pSQL = "SELECT reg.Name,"_ 
-	   "reg.Guid, "_
+	   				"reg.Guid, "_
 	   "reg.HLevel,"_
 	   "NULL As Latitude, "_
 	   "NULL As Longitude, "_
@@ -111,13 +114,11 @@ Return an SQL statement to execute.</Description>
 	   "NULL As SpecialIcon, "_ 
 	   "pv.Value As Value, "_
 	   "pv.Parameter As ParameterId, "_
-	   "'rgb(' || round(255 / ($LENGTH(reg.Name)*0.1), 0) || ',' || round(255 / ($LENGTH(reg.Name)*0.1 + reg.DefaultZoom), 0) || ',' || round(255 / ($LENGTH(reg.Name)*0.1), 0) As Color "_
 	   "FROM KZ.ParameterValue as pv INNER JOIN "_
 	   "KZ.Region as reg ON reg.ID = pv.Area "_
 	   "WHERE reg.HLevel=0 AND pv.Parameter='1'"
 		}
-		
-		set ^temp = pSQL
+		*/
 	}
 	catch(ex){
 		set st = ex.AsStatus()
@@ -140,8 +141,7 @@ SELECT reg.Name,
 	   reg.Capital->Name As CenterName, 
 	   NULL As SpecialIcon,  
 	   pv.Value As Value, 
-	   pv.Parameter As ParameterId,
-	   'rgb(' || round(255 / ($LENGTH(reg.Name)*0.1), 0) || ',' || round(255 / ($LENGTH(reg.Name)*0.1 + reg.DefaultZoom), 0) || ',' || round(255 / ($LENGTH(reg.Name)*0.1), 0) As Color 
+	   pv.Parameter As ParameterId 
 FROM KZ.ParameterValue as pv INNER JOIN
 	 KZ.Region as reg ON reg.ID = pv.Area
 WHERE :WHERECondition
@@ -162,8 +162,7 @@ SELECT city.Name,
 	   '' As CenterName, 
 	   city.SpecialIcon As SpecialIcon, 
 	   pv.Value As Value, 
-	   pv.Parameter As ParameterId,
-	   null As Color 
+	   pv.Parameter As ParameterId
 FROM KZ.ParameterValue as pv INNER JOIN
 	 KZ.City as city ON city.ID = pv.Area
 WHERE :WHERECondition
@@ -184,8 +183,7 @@ SELECT reg.Name,
 	   reg.Capital->Name As CenterName, 
 	   NULL As SpecialIcon, 
 	   pv.Value As Value, 
-	   pv.Parameter As ParameterId,
-	  'rgb(' || round(255 / ($LENGTH(reg.Name)*0.1), 0) || ',' || round(255 / ($LENGTH(reg.Name)*0.1 + reg.DefaultZoom), 0) || ',' || round(255 / ($LENGTH(reg.Name)*0.1), 0) As Color 
+	   pv.Parameter As ParameterId
 FROM KZ.ParameterValue as pv INNER JOIN
 	 KZ.Region as reg ON reg.ID = pv.Area
 WHERE :WHERERegionCondition
@@ -200,8 +198,7 @@ SELECT city.Name As Name,
 	   '*' As CenterName, 
 	   city.SpecialIcon As SpecialIcon,
 	   pv.Value As Value, 
-	   pv.Parameter As ParameterId,
-	   null As Color
+	   pv.Parameter As ParameterId
 FROM KZ.City as city INNER JOIN
 KZ.Region as reg ON reg.Capital=city.ID INNER JOIN
 KZ.ParameterValue as pv ON pv.Area=city.ID
