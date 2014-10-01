@@ -8,7 +8,7 @@
 do ##class(KZ.Utils).Populate()</Description>
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
-
+	w "wef"
 	do $CLASSMETHOD("KZ.Area", "%KillExtent")
 	do $CLASSMETHOD("KZ.Borders", "%KillExtent")
 	

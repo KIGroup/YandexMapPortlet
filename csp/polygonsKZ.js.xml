@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-<CSP name="polygonsKZ.js" application="/csp/yandex/" default="1"><![CDATA[
+<CSP name="polygonsKZ.js" application="/csp/yandexmapportlet/" default="1"><![CDATA[
 function loadCoordinates(polygonCoordsArray) {
 // Almaty
 polygonCoordsArray['0384C95C-341F-4E7C-80DF-21B76DF50A37'] = 

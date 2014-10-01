@@ -882,7 +882,8 @@ Returns the placemark object.]]></Description>
 	if (!map || isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) return null;
 
 	var geometry = [latitude, longitude];
-	var properties = {hintContent: title}
+	var properties = {hintContent: title};
+	
 	var options = {};
 	
 	if (icon){
@@ -948,27 +949,50 @@ Internal method: sync placemarks to data from controller.</Description>
 <Language>javascript</Language>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
+
 	this.clearPlacemarks();
-	
+	placemarks = [];
 	var map = this.getMapObject();
 	var controller = this.getController();
-	
 	if (!map || !controller || !this._placemarkData) return;
-			
-	try {	
+	//Формируем список столиц для отображения при нажатии на clusterer
+	var customBalloonContentLayout = ymaps.templateLayoutFactory.createClass([
+                '<ul class=list>',
+                // Выводим в цикле список всех геообъектов(возможно, нужно перенести в Dashboard, т.к. используется geoObject.data)
+                '{% for geoObject in properties.geoObjects %}',
+                    '<li><a href="#"Здесь необходима ссылка на метод вызова балуна с данными">{{ geoObject.data.Name|raw }}</a></li>',
+                '{% endfor %}',
+                '</ul>'
+				].join(''));
+   var clusterer = new ymaps.Clusterer({
+   clusterDisableClickZoom: true,
+   clusterOpenBalloonOnClick: true,
+   // Устанавливаем режим открытия балуна. 
+   // В данном примере балун никогда не будет открываться в режиме панели.
+   clusterBalloonPanelMaxMapArea: 0,
+   // По умолчанию опции балуна balloonMaxWidth и balloonMaxHeight не установлены для кластеризатора,
+   // так как все стандартные макеты имеют определенные размеры.
+   clusterBalloonMaxHeight: 200,
+   // Устанавливаем собственный макет контента балуна.
+   clusterBalloonContentLayout: customBalloonContentLayout
+   });
+   try {	
 		for (var n = 0; n < this._placemarkData.length; n++){
 			var md = this._placemarkData[n];
 			if (md){
                 if(this.placemarkSpecialIcon != "" && md.specialIcon == 1){
 					md.icon = this.placemarkSpecialIcon;
                 }
-                
 				var placemark = this.addPlacemark(n, md.latitude, md.longitude, md.title, md.isClickable, md.icon, md.data);
 				if (placemark){
-					map.geoObjects.add(placemark); 
+					//Добавляем созданный маркер в массив маркеров
+				    placemarks.push(placemark); 
 					zenInvokeCallbackMethod(this.onaddplacemark, this, 'onaddplacemark', 'placemark', placemark);
 				}
 			}
+		  ///Добавляем массив маркеров в в объект clusterer
+		  clusterer.add(placemarks);
+          map.geoObjects.add(clusterer);
 		}
 	}
 	catch(ex) {
