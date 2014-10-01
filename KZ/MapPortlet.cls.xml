@@ -950,7 +950,6 @@ Internal method: sync placemarks to data from controller.</Description>
 <ClientMethod>1</ClientMethod>
 <Implementation><![CDATA[
 	this.clearPlacemarks();
-	placemarks = [];
 	
 	var map = this.getMapObject();
 	var controller = this.getController();
@@ -959,15 +958,15 @@ Internal method: sync placemarks to data from controller.</Description>
 
 	//Формируем список столиц для отображения при нажатии на clusterer
 	var customBalloonContentLayout = ymaps.templateLayoutFactory.createClass([
-                '<ul class=list>',
+                '<ul class="clusterList">',
                 // Выводим в цикле список всех геообъектов
                 '{% for geoObject in properties.geoObjects %}',
-                    '<li><a href="#" onclick="zenPage.getComponentById(\'' + this.id + '\').placemarkEventHandler({{geoObject._id|raw}} , \'click\')">{{ geoObject.data.Name|raw }}</a></li>',
+                    '<li><a href="#" onclick="zenPage.getComponentById(\'' + this.id + '\').placemarkEventHandler({{geoObject._id|raw}} , \'click\')">{{ geoObject.properties.hintContent|raw }}</a></li>',
                 '{% endfor %}',
                 '</ul>'
 				].join(''));
 				
-  	var clusterer = new ymaps.Clusterer({
+  	this._clusterer = new ymaps.Clusterer({
    						clusterDisableClickZoom: true,
    						clusterOpenBalloonOnClick: true,
    						// Устанавливаем режим открытия балуна. 
@@ -980,24 +979,25 @@ Internal method: sync placemarks to data from controller.</Description>
    						clusterBalloonContentLayout: customBalloonContentLayout
    					});
    					
-   try {	
+   	try {	
 		for (var n = 0; n < this._placemarkData.length; n++){
 			var md = this._placemarkData[n];
 			if (md){
                 if(this.placemarkSpecialIcon != "" && md.specialIcon == 1){
 					md.icon = this.placemarkSpecialIcon;
                 }
+			
 				var placemark = this.addPlacemark(n, md.latitude, md.longitude, md.title, md.isClickable, md.icon, md.data);
+			
 				if (placemark){
-					//Добавляем созданный маркер в массив маркеров
-				    placemarks.push(placemark); 
 					zenInvokeCallbackMethod(this.onaddplacemark, this, 'onaddplacemark', 'placemark', placemark);
 				}
 			}
-		  ///Добавляем массив маркеров в в объект clusterer
-		  clusterer.add(placemarks);
-          map.geoObjects.add(clusterer);
 		}
+		
+		///Добавляем массив маркеров в объект clusterer
+		this._clusterer.add(this._placemarks);
+        map.geoObjects.add(this._clusterer);
 	}
 	catch(ex) {
 		alert('Error in syncPlacemarks ' + ex.message);
@@ -1014,9 +1014,9 @@ Internal method: clear placemarks from map.</Description>
 <Implementation><![CDATA[
 	try {
 		// kill old placemarks
-		if (this._placemarks) {
+		if (this._placemarks && this._clusterer) {
 			for (var n = 0; n < this._placemarks.length; n++) {
-				this._mapObject.geoObjects.remove(this._placemarks[n]);
+				this._clusterer.remove(this._placemarks[n]);
 			}
 		}
 		
@@ -1602,6 +1602,12 @@ Get proxy object with addition information for object by id</Description>
 <XData name="Style">
 <Data><![CDATA[
 <style type="text/css">
+.clusterList{
+	padding-left: 20px;
+	font-family: Arial;
+	font-size: 12px;
+}
+
 /* Custom slider CSS */
 #divSlider{
 	width: 500px;
