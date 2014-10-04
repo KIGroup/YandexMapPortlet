@@ -967,8 +967,8 @@ Internal method: sync placemarks to data from controller.</Description>
 				].join(''));
 				
   	this._clusterer = new ymaps.Clusterer({
-   						clusterDisableClickZoom: true,
-   						clusterOpenBalloonOnClick: true,
+   						clusterDisableClickZoom: false,
+   						clusterOpenBalloonOnClick: false,
    						// Устанавливаем режим открытия балуна. 
    						// В данном примере балун никогда не будет открываться в режиме панели.
    						clusterBalloonPanelMaxMapArea: 0,
@@ -978,6 +978,7 @@ Internal method: sync placemarks to data from controller.</Description>
    						// Устанавливаем собственный макет контента балуна.
    						clusterBalloonContentLayout: customBalloonContentLayout
    					});
+   	
    					
    	try {	
 		for (var n = 0; n < this._placemarkData.length; n++){
@@ -997,6 +998,15 @@ Internal method: sync placemarks to data from controller.</Description>
 		
 		///Добавляем массив маркеров в объект clusterer
 		this._clusterer.add(this._placemarks);
+
+		this._clusterer.events.add("contextmenu", function (e) {  
+			var myBallon = e.get('target');
+			console.log(e.get('target'));
+            console.log(myBallon.balloon);
+            console.log(myBallon.properties.balloon);
+            console.log(myBallon.properties.get("balloon"));
+                                                                   
+    	});
         map.geoObjects.add(this._clusterer);
 	}
 	catch(ex) {
